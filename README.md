@@ -1,2 +1,2 @@
-# your_token_staking
+# Your token staking
 Staking rust contract
