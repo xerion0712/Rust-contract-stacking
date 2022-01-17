@@ -1,0 +1,26 @@
+[package]
+name = "your_staking"
+version = "0.1.0"
+edition = "2018"
+
+[dependencies]
+solana-program = "1.8.6"
+thiserror = "1.0.30"
+spl-token = {version = "3.2.0", features = ["no-entrypoint"]}
+arrayref = "0.3.6"
+borsh = "0.9.1"
+bs58 = "0.4.0"
+
+[features]
+no-entrypoint = []
+test-bpf = []
+
+[dev-dependencies]
+assert_matches = "1.5.0"
+solana-program-test = "1.8.6"
+solana-sdk = "1.8.6"
+solana-validator = "1.8.6"
+
+
+[lib]
+crate-type = ["cdylib", "lib"]
