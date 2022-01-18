@@ -2,8 +2,8 @@ use crate::{
     error::CustomError,
     processor::create_user::get_user_storage_address_and_bump_seed,
     state::{
-        AccTypesWithVersion, CwarPool, User, CWAR_POOL_STORAGE_TOTAL_BYTES,
-        USER_STORAGE_TOTAL_BYTES,
+        AccTypesWithVersion, User, YourPool, USER_STORAGE_TOTAL_BYTES,
+        YOUR_POOL_STORAGE_TOTAL_BYTES,
     },
     utils,
 };
@@ -28,8 +28,8 @@ pub fn process_stake_cwar(
     let account_info_iter = &mut accounts.iter();
     let user_wallet_account = next_account_info(account_info_iter)?;
     let user_storage_account = next_account_info(account_info_iter)?;
-    let cwar_pool_storage_account = next_account_info(account_info_iter)?;
-    let cwar_staking_vault = next_account_info(account_info_iter)?;
+    let your_pool_storage_account = next_account_info(account_info_iter)?;
+    let your_staking_vault = next_account_info(account_info_iter)?;
     let user_cwar_ata = next_account_info(account_info_iter)?;
     let token_program = next_account_info(account_info_iter)?;
 
@@ -45,7 +45,7 @@ pub fn process_stake_cwar(
 
     let (user_storage_address, _bump_seed) = get_user_storage_address_and_bump_seed(
         user_wallet_account.key,
-        cwar_pool_storage_account.key,
+        your_pool_storage_account.key,
         program_id,
     );
     if user_storage_address != *user_storage_account.key {
@@ -53,15 +53,15 @@ pub fn process_stake_cwar(
         return Err(ProgramError::InvalidSeeds);
     }
 
-    if cwar_pool_storage_account.data_len() != CWAR_POOL_STORAGE_TOTAL_BYTES {
+    if your_pool_storage_account.data_len() != YOUR_POOL_STORAGE_TOTAL_BYTES {
         msg!("CustomError::DataSizeNotMatched");
         return Err(CustomError::DataSizeNotMatched.into());
     }
-    let mut cwar_pool_data_byte_array = cwar_pool_storage_account.data.try_borrow_mut().unwrap();
-    let mut cwar_pool_data: CwarPool =
-        CwarPool::try_from_slice(&cwar_pool_data_byte_array[0usize..CWAR_POOL_STORAGE_TOTAL_BYTES])
+    let mut your_pool_data_byte_array = your_pool_storage_account.data.try_borrow_mut().unwrap();
+    let mut your_pool_data: YourPool =
+        YourPool::try_from_slice(&your_pool_data_byte_array[0usize..YOUR_POOL_STORAGE_TOTAL_BYTES])
             .unwrap();
-    if cwar_pool_data.acc_type != AccTypesWithVersion::CwarPoolDataV1 as u8 {
+    if your_pool_data.acc_type != AccTypesWithVersion::YourPoolDataV1 as u8 {
         msg!("CustomError::ExpectedAccountTypeMismatched");
         return Err(CustomError::ExpectedAccountTypeMismatched.into());
     }
@@ -83,26 +83,26 @@ pub fn process_stake_cwar(
         msg!("CustomError::UserStorageAuthorityMismatched");
         return Err(CustomError::UserStorageAuthorityMismatched.into());
     }
-    if user_storage_data.cwar_pool != *cwar_pool_storage_account.key {
+    if user_storage_data.your_pool != *your_pool_storage_account.key {
         msg!("CustomError::UserPoolMismatched");
         return Err(CustomError::UserPoolMismatched.into());
     }
 
-    if cwar_staking_vault.owner != token_program.key {
+    if your_staking_vault.owner != token_program.key {
         msg!("CustomError::AccountOwnerShouldBeTokenProgram");
         return Err(CustomError::AccountOwnerShouldBeTokenProgram.into());
     }
-    let cwar_staking_vault_data = TokenAccount::unpack(&cwar_staking_vault.data.borrow())?;
+    let your_staking_vault_data = TokenAccount::unpack(&your_staking_vault.data.borrow())?;
     let (pool_signer_address, _bump_seed) =
-        Pubkey::find_program_address(&[&cwar_pool_storage_account.key.to_bytes()], program_id);
-    if cwar_staking_vault_data.owner != pool_signer_address {
+        Pubkey::find_program_address(&[&your_pool_storage_account.key.to_bytes()], program_id);
+    if your_staking_vault_data.owner != pool_signer_address {
         msg!("CustomError::InvalidStakingVault");
         return Err(CustomError::InvalidStakingVault.into());
     }
 
-    let total_cwar_staked = cwar_staking_vault_data.amount;
+    let total_cwar_staked = your_staking_vault_data.amount;
     utils::update_rewards(
-        &mut cwar_pool_data,
+        &mut your_pool_data,
         Some(&mut user_storage_data),
         total_cwar_staked,
     )?;
@@ -111,24 +111,24 @@ pub fn process_stake_cwar(
         &spl_token::instruction::transfer(
             token_program.key,
             user_cwar_ata.key,
-            cwar_staking_vault.key,
+            your_staking_vault.key,
             user_wallet_account.key,
             &[],
             amount_to_deposit,
         )?,
         &[
             user_cwar_ata.clone(),
-            cwar_staking_vault.clone(),
+            your_staking_vault.clone(),
             user_wallet_account.clone(),
             token_program.clone(),
         ],
     )?;
-    user_storage_data.balance_cwar_staked = user_storage_data
-        .balance_cwar_staked
+    user_storage_data.balance_your_staked = user_storage_data
+        .balance_your_staked
         .checked_add(amount_to_deposit)
         .ok_or(CustomError::AmountOverflow)?;
-    cwar_pool_data_byte_array[0usize..CWAR_POOL_STORAGE_TOTAL_BYTES]
-        .copy_from_slice(&cwar_pool_data.try_to_vec().unwrap());
+    your_pool_data_byte_array[0usize..YOUR_POOL_STORAGE_TOTAL_BYTES]
+        .copy_from_slice(&your_pool_data.try_to_vec().unwrap());
     user_data_byte_array[0usize..USER_STORAGE_TOTAL_BYTES]
         .copy_from_slice(&user_storage_data.try_to_vec().unwrap());
 

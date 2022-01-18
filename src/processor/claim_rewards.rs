@@ -2,8 +2,8 @@ use crate::{
     error::CustomError,
     processor::create_user::get_user_storage_address_and_bump_seed,
     state::{
-        AccTypesWithVersion, CwarPool, User, CWAR_POOL_STORAGE_TOTAL_BYTES,
-        USER_STORAGE_TOTAL_BYTES,
+        AccTypesWithVersion, User, YourPool, USER_STORAGE_TOTAL_BYTES,
+        YOUR_POOL_STORAGE_TOTAL_BYTES,
     },
     utils,
 };
@@ -24,9 +24,9 @@ pub fn process_claim_rewards(accounts: &[AccountInfo], program_id: &Pubkey) -> P
     let account_info_iter = &mut accounts.iter();
     let user_wallet_account = next_account_info(account_info_iter)?;
     let user_storage_account = next_account_info(account_info_iter)?;
-    let cwar_pool_storage_account = next_account_info(account_info_iter)?;
-    let cwar_staking_vault = next_account_info(account_info_iter)?;
-    let cwar_rewards_vault = next_account_info(account_info_iter)?;
+    let your_pool_storage_account = next_account_info(account_info_iter)?;
+    let your_staking_vault = next_account_info(account_info_iter)?;
+    let your_rewards_vault = next_account_info(account_info_iter)?;
     let user_rewards_ata = next_account_info(account_info_iter)?;
     let pool_signer_pda = next_account_info(account_info_iter)?;
     let token_program = next_account_info(account_info_iter)?;
@@ -42,7 +42,7 @@ pub fn process_claim_rewards(accounts: &[AccountInfo], program_id: &Pubkey) -> P
 
     let (user_storage_address, _bump_seed) = get_user_storage_address_and_bump_seed(
         user_wallet_account.key,
-        cwar_pool_storage_account.key,
+        your_pool_storage_account.key,
         program_id,
     );
     if user_storage_address != *user_storage_account.key {
@@ -50,15 +50,15 @@ pub fn process_claim_rewards(accounts: &[AccountInfo], program_id: &Pubkey) -> P
         return Err(ProgramError::InvalidSeeds);
     }
 
-    if cwar_pool_storage_account.data_len() != CWAR_POOL_STORAGE_TOTAL_BYTES {
+    if your_pool_storage_account.data_len() != YOUR_POOL_STORAGE_TOTAL_BYTES {
         msg!("CustomError::DataSizeNotMatched");
         return Err(CustomError::DataSizeNotMatched.into());
     }
-    let mut cwar_pool_data_byte_array = cwar_pool_storage_account.data.try_borrow_mut().unwrap();
-    let mut cwar_pool_data: CwarPool =
-        CwarPool::try_from_slice(&cwar_pool_data_byte_array[0usize..CWAR_POOL_STORAGE_TOTAL_BYTES])
+    let mut your_pool_data_byte_array = your_pool_storage_account.data.try_borrow_mut().unwrap();
+    let mut your_pool_data: YourPool =
+        YourPool::try_from_slice(&your_pool_data_byte_array[0usize..YOUR_POOL_STORAGE_TOTAL_BYTES])
             .unwrap();
-    if cwar_pool_data.acc_type != AccTypesWithVersion::CwarPoolDataV1 as u8 {
+    if your_pool_data.acc_type != AccTypesWithVersion::YourPoolDataV1 as u8 {
         msg!("CustomError::ExpectedAccountTypeMismatched");
         return Err(CustomError::ExpectedAccountTypeMismatched.into());
     }
@@ -80,36 +80,36 @@ pub fn process_claim_rewards(accounts: &[AccountInfo], program_id: &Pubkey) -> P
         msg!("CustomError::UserStorageAuthorityMismatched");
         return Err(CustomError::UserStorageAuthorityMismatched.into());
     }
-    if user_storage_data.cwar_pool != *cwar_pool_storage_account.key {
+    if user_storage_data.your_pool != *your_pool_storage_account.key {
         msg!("CustomError::UserPoolMismatched");
         return Err(CustomError::UserPoolMismatched.into());
     }
 
-    if cwar_staking_vault.owner != token_program.key {
+    if your_staking_vault.owner != token_program.key {
         msg!("CustomError::AccountOwnerShouldBeTokenProgram");
         return Err(CustomError::AccountOwnerShouldBeTokenProgram.into());
     }
 
-    let cwar_staking_vault_data = TokenAccount::unpack(&cwar_staking_vault.data.borrow())?;
+    let your_staking_vault_data = TokenAccount::unpack(&your_staking_vault.data.borrow())?;
     let (pool_signer_address, bump_seed) =
-        Pubkey::find_program_address(&[&cwar_pool_storage_account.key.to_bytes()], program_id);
+        Pubkey::find_program_address(&[&your_pool_storage_account.key.to_bytes()], program_id);
 
-    if cwar_staking_vault_data.owner != pool_signer_address {
+    if your_staking_vault_data.owner != pool_signer_address {
         msg!("CustomError::InvalidStakingVault");
         return Err(CustomError::InvalidStakingVault.into());
     }
 
-    let total_cwar_staked = cwar_staking_vault_data.amount;
+    let total_cwar_staked = your_staking_vault_data.amount;
     utils::update_rewards(
-        &mut cwar_pool_data,
+        &mut your_pool_data,
         Some(&mut user_storage_data),
         total_cwar_staked,
     )?;
-    if user_storage_data.cwar_reward_per_token_pending > 0u64 {
-        let mut reward_amount = user_storage_data.cwar_reward_per_token_pending;
-        user_storage_data.cwar_reward_per_token_pending = 0u64;
-        let cwar_rewards_vault_data = TokenAccount::unpack(&cwar_rewards_vault.data.borrow())?;
-        let reward_vault_balance = cwar_rewards_vault_data.amount;
+    if user_storage_data.your_reward_per_token_pending > 0u64 {
+        let mut reward_amount = user_storage_data.your_reward_per_token_pending;
+        user_storage_data.your_reward_per_token_pending = 0u64;
+        let your_rewards_vault_data = TokenAccount::unpack(&your_rewards_vault.data.borrow())?;
+        let reward_vault_balance = your_rewards_vault_data.amount;
         if reward_vault_balance < reward_amount {
             reward_amount = reward_vault_balance;
         }
@@ -119,25 +119,25 @@ pub fn process_claim_rewards(accounts: &[AccountInfo], program_id: &Pubkey) -> P
             invoke_signed(
                 &spl_token::instruction::transfer(
                     token_program.key,
-                    cwar_rewards_vault.key,
+                    your_rewards_vault.key,
                     user_rewards_ata.key,
                     &pool_signer_address,
                     &[&pool_signer_address],
                     reward_amount,
                 )?,
                 &[
-                    cwar_rewards_vault.clone(),
+                    your_rewards_vault.clone(),
                     user_rewards_ata.clone(),
                     pool_signer_pda.clone(),
                     token_program.clone(),
                 ],
-                &[&[&cwar_pool_storage_account.key.to_bytes(), &[bump_seed]]],
+                &[&[&your_pool_storage_account.key.to_bytes(), &[bump_seed]]],
             )?;
         }
     }
 
-    cwar_pool_data_byte_array[0usize..CWAR_POOL_STORAGE_TOTAL_BYTES]
-        .copy_from_slice(&cwar_pool_data.try_to_vec().unwrap());
+    your_pool_data_byte_array[0usize..YOUR_POOL_STORAGE_TOTAL_BYTES]
+        .copy_from_slice(&your_pool_data.try_to_vec().unwrap());
     user_data_byte_array[0usize..USER_STORAGE_TOTAL_BYTES]
         .copy_from_slice(&user_storage_data.try_to_vec().unwrap());
     Ok(())
