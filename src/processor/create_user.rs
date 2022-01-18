@@ -2,8 +2,8 @@ use crate::{
     error::CustomError,
     state,
     state::{
-        AccTypesWithVersion, CwarPool, User, CWAR_POOL_STORAGE_TOTAL_BYTES,
-        USER_STORAGE_TOTAL_BYTES,
+        AccTypesWithVersion, User, YourPool, USER_STORAGE_TOTAL_BYTES,
+        YOUR_POOL_STORAGE_TOTAL_BYTES,
     },
 };
 
@@ -30,7 +30,7 @@ pub fn process_create_user(
     let account_info_iter = &mut accounts.iter();
     let user_wallet_account = next_account_info(account_info_iter)?;
     let user_storage_account = next_account_info(account_info_iter)?;
-    let cwar_pool_storage_account = next_account_info(account_info_iter)?;
+    let your_pool_storage_account = next_account_info(account_info_iter)?;
     let system_program_info = next_account_info(account_info_iter)?;
     msg!("nonce: {}", nonce);
     if !user_wallet_account.is_signer {
@@ -53,7 +53,7 @@ pub fn process_create_user(
 
     let (user_storage_address, bump_seed) = get_user_storage_address_and_bump_seed(
         user_wallet_account.key,
-        cwar_pool_storage_account.key,
+        your_pool_storage_account.key,
         program_id,
     );
     if user_storage_address != *user_storage_account.key {
@@ -63,7 +63,7 @@ pub fn process_create_user(
 
     let user_storage_account_signer_seeds: &[&[_]] = &[
         &user_wallet_account.key.to_bytes(),
-        &cwar_pool_storage_account.key.to_bytes(),
+        &your_pool_storage_account.key.to_bytes(),
         &[bump_seed],
     ];
 
@@ -80,11 +80,11 @@ pub fn process_create_user(
     let user_storage_data = User {
         acc_type: state::AccTypesWithVersion::UserDataV1 as u8,
         user_wallet: *user_wallet_account.key,
-        cwar_pool: *cwar_pool_storage_account.key,
-        balance_cwar_staked: 0u64,
+        your_pool: *your_pool_storage_account.key,
+        balance_your_staked: 0u64,
         nonce: bump_seed,
-        cwar_reward_per_token_pending: 0u64,
-        cwar_reward_per_token_completed: 0u128,
+        your_reward_per_token_pending: 0u64,
+        your_reward_per_token_completed: 0u128,
     };
 
     let mut user_data_byte_array = user_storage_account.data.try_borrow_mut().unwrap();
@@ -92,23 +92,23 @@ pub fn process_create_user(
     user_data_byte_array[0usize..USER_STORAGE_TOTAL_BYTES]
         .copy_from_slice(&user_storage_data.try_to_vec().unwrap());
 
-    if cwar_pool_storage_account.data_len() != CWAR_POOL_STORAGE_TOTAL_BYTES {
+    if your_pool_storage_account.data_len() != YOUR_POOL_STORAGE_TOTAL_BYTES {
         msg!("CustomError::DataSizeNotMatched");
         return Err(CustomError::DataSizeNotMatched.into());
     }
-    let mut cwar_pool_data_byte_array = cwar_pool_storage_account.data.try_borrow_mut().unwrap();
-    let mut cwar_pool_data: CwarPool =
-        CwarPool::try_from_slice(&cwar_pool_data_byte_array[0usize..CWAR_POOL_STORAGE_TOTAL_BYTES])
+    let mut your_pool_data_byte_array = your_pool_storage_account.data.try_borrow_mut().unwrap();
+    let mut your_pool_data: YourPool =
+        YourPool::try_from_slice(&your_pool_data_byte_array[0usize..YOUR_POOL_STORAGE_TOTAL_BYTES])
             .unwrap();
-    if cwar_pool_data.acc_type != AccTypesWithVersion::CwarPoolDataV1 as u8 {
+    if your_pool_data.acc_type != AccTypesWithVersion::YourPoolDataV1 as u8 {
         msg!("CustomError::ExpectedAccountTypeMismatched");
         return Err(CustomError::ExpectedAccountTypeMismatched.into());
     }
 
-    cwar_pool_data.user_stake_count += 1u32;
+    your_pool_data.user_stake_count += 1u32;
 
-    cwar_pool_data_byte_array[0usize..CWAR_POOL_STORAGE_TOTAL_BYTES]
-        .copy_from_slice(&cwar_pool_data.try_to_vec().unwrap());
+    your_pool_data_byte_array[0usize..YOUR_POOL_STORAGE_TOTAL_BYTES]
+        .copy_from_slice(&your_pool_data.try_to_vec().unwrap());
 
     Ok(())
 }

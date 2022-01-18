@@ -2,7 +2,7 @@ use std::cell::RefMut;
 use std::convert::TryInto;
 
 use crate::error::CustomError;
-use crate::state::{CwarPool, User};
+use crate::state::{YourPool, User};
 use solana_program::account_info::AccountInfo;
 use solana_program::entrypoint::ProgramResult;
 use solana_program::program_error::ProgramError;
@@ -83,30 +83,30 @@ pub fn earned(
 }
 
 pub fn update_rewards(
-    cwar_pool: &mut CwarPool,
+    cwar_pool: &mut YourPool,
     user: Option<&mut User>,
     total_cwar_staked: u64,
 ) -> ProgramResult {
     let now = Clock::get()?.unix_timestamp;
     let last_time_reward_applicable =
         last_time_reward_applicable(cwar_pool.reward_duration_end, now);
-    cwar_pool.cwar_reward_per_token_stored = rewards_per_token(
+    cwar_pool.your_reward_per_token_stored = rewards_per_token(
         total_cwar_staked,
         last_time_reward_applicable,
         cwar_pool.total_stake_last_update_time,
-        cwar_pool.cwar_reward_rate,
-        cwar_pool.cwar_reward_per_token_stored,
+        cwar_pool.your_reward_rate,
+        cwar_pool.your_reward_per_token_stored,
     )?;
     cwar_pool.total_stake_last_update_time = last_time_reward_applicable;
 
     if let Some(u) = user {
-        u.cwar_reward_per_token_pending = earned(
-            u.balance_cwar_staked,
-            cwar_pool.cwar_reward_per_token_stored,
-            u.cwar_reward_per_token_completed,
-            u.cwar_reward_per_token_pending,
+        u.your_reward_per_token_pending = earned(
+            u.balance_your_staked,
+            cwar_pool.your_reward_per_token_stored,
+            u.your_reward_per_token_completed,
+            u.your_reward_per_token_pending,
         )?;
-        u.cwar_reward_per_token_completed = cwar_pool.cwar_reward_per_token_stored;
+        u.your_reward_per_token_completed = cwar_pool.your_reward_per_token_stored;
     }
 
     Ok(())
