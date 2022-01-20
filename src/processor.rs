@@ -1,16 +1,21 @@
 use crate::instruction::Instruction;
 
 use {
-    claim_rewards::process_claim_rewards, create_user::process_create_user,
-    initialize_cwar_pool::process_initialize_cwar_pool, stake_cwar::process_stake_cwar,
+    claim_rewards::process_claim_rewards, close_pool::process_close_pool,
+    close_user::process_close_user, create_user::process_create_user,
+    initialize_cwar_pool::process_initialize_your_pool, stake_cwar::process_stake_cwar,
     unstake_cwar::process_unstake_cwar,
 };
 
 pub mod claim_rewards;
+pub mod close_pool;
+pub mod close_user;
 pub mod create_user;
+pub mod fund_pool;
 pub mod initialize_cwar_pool;
 pub mod stake_cwar;
 pub mod unstake_cwar;
+
 use solana_program::{account_info::AccountInfo, entrypoint::ProgramResult, msg, pubkey::Pubkey};
 
 pub struct Processor;
@@ -25,9 +30,16 @@ impl Processor {
             Instruction::InitializePool {
                 reward_duration,
                 pool_nonce,
+                fund_amount,
             } => {
                 msg!("Instruction::InitializePool");
-                process_initialize_cwar_pool(accounts, reward_duration, pool_nonce, program_id)
+                process_initialize_your_pool(
+                    accounts,
+                    reward_duration,
+                    pool_nonce,
+                    fund_amount,
+                    program_id,
+                )
             }
             Instruction::CreateUser { nonce } => {
                 msg!("Instruction::CreateUser");
@@ -47,6 +59,16 @@ impl Processor {
             Instruction::ClaimRewards {} => {
                 msg!("Instruction::ClaimRewards");
                 process_claim_rewards(accounts, program_id)
+            }
+
+            Instruction::ClosePool {} => {
+                msg!("CryowarInstruction::ClosePool");
+                process_close_pool(accounts, program_id)
+            }
+
+            Instruction::CloseUser {} => {
+                msg!("CryowarInstruction::CloseUser");
+                process_close_user(accounts, program_id)
             }
         }
     }

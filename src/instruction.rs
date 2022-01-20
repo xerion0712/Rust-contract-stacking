@@ -5,6 +5,7 @@ pub enum Instruction {
     InitializePool {
         reward_duration: u64,
         pool_nonce: u8,
+        fund_amount: u64,
     },
     CreateUser {
         nonce: u8,
@@ -16,6 +17,8 @@ pub enum Instruction {
         amount_to_withdraw: u64,
     },
     ClaimRewards {},
+    ClosePool {},
+    CloseUser {},
 }
 
 impl Instruction {
@@ -24,6 +27,7 @@ impl Instruction {
             0 => Self::InitializePool {
                 reward_duration: Self::unpack_to_u64(&input[1..9])?,
                 pool_nonce: input[9],
+                fund_amount: Self::unpack_to_u64(&input[10..18])?,
             },
             1 => Self::CreateUser { nonce: input[1] },
             2 => Self::Stake {
@@ -34,6 +38,10 @@ impl Instruction {
             },
 
             4 => Self::ClaimRewards {},
+
+            8 => Self::ClosePool {},
+
+            9 => Self::CloseUser {},
 
             _ => return Err(InvalidInstruction.into()),
         })
