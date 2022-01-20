@@ -64,10 +64,13 @@ pub fn process_initialize_your_pool(
         "Reward ATA to Debit: {}",
         your_rewards_ata_to_debit.key.to_string()
     );
+    msg!("Fund pool amount: {}", fund_pool);
     if !pool_owner_wallet_account.is_signer {
         msg!("ProgramError::MissingRequiredSignature");
         return Err(ProgramError::MissingRequiredSignature);
     }
+
+    msg!("Token program: {}", token_program.key.to_string());
 
     if token_program.key != &spl_token::id() {
         msg!("CustomError::InvalidTokenProgram");
@@ -106,8 +109,8 @@ pub fn process_initialize_your_pool(
     );
     invoke(
         &spl_token::instruction::set_authority(
-            token_program.key,
-            your_staking_vault.key,
+            token_program.clone().key,
+            your_staking_vault.clone().key,
             Some(&pool_signer_address),
             spl_token::instruction::AuthorityType::AccountOwner,
             pool_owner_wallet_account.key,
@@ -125,8 +128,8 @@ pub fn process_initialize_your_pool(
     );
     invoke(
         &spl_token::instruction::set_authority(
-            token_program.key,
-            your_rewards_vault.key,
+            token_program.clone().key,
+            your_rewards_vault.clone().key,
             Some(&pool_signer_address),
             spl_token::instruction::AuthorityType::AccountOwner,
             pool_owner_wallet_account.key,
@@ -150,13 +153,13 @@ pub fn process_initialize_your_pool(
         return Err(CustomError::MintMismatched.into());
     }
 
-    let your_rewards_vault_data = TokenAccount::unpack(&your_rewards_vault.data.borrow())?;
+    let your_rewards_vault_data = TokenAccount::unpack(&your_rewards_vault.clone().data.borrow())?;
     if your_rewards_vault_data.mint != *your_rewards_mint.key {
         msg!("CustomError::MintMismatched");
         return Err(CustomError::MintMismatched.into());
     }
-
-    let mut your_pool_data_byte_array = your_pool_storage_account.data.try_borrow_mut().unwrap();
+    let your_pool_storage_account_clone = your_pool_storage_account.clone();
+    let mut your_pool_data_byte_array = your_pool_storage_account_clone.data.try_borrow_mut().unwrap();
     let mut your_pool_data: YourPool =
         YourPool::try_from_slice(&your_pool_data_byte_array[0usize..YOUR_POOL_STORAGE_TOTAL_BYTES])
             .unwrap();
@@ -184,24 +187,12 @@ pub fn process_initialize_your_pool(
     your_pool_data_byte_array[0usize..YOUR_POOL_STORAGE_TOTAL_BYTES]
         .copy_from_slice(&your_pool_data.try_to_vec().unwrap());
 
-    /// Fund pool
+    msg!("Fund pool started...");
+
+    // Fund pool
     if token_program.key != &spl_token::id() {
         msg!("CustomError::InvalidTokenProgram");
         return Err(CustomError::InvalidTokenProgram.into());
-    }
-
-    if your_pool_storage_account.data_len() != YOUR_POOL_STORAGE_TOTAL_BYTES {
-        msg!("CustomError::DataSizeNotMatched");
-        return Err(CustomError::DataSizeNotMatched.into());
-    }
-    let mut your_pool_data_byte_array = your_pool_storage_account.data.try_borrow_mut().unwrap();
-    let mut your_pool_data: YourPool =
-        YourPool::try_from_slice(&your_pool_data_byte_array[0usize..YOUR_POOL_STORAGE_TOTAL_BYTES])
-            .unwrap();
-
-    if your_pool_data.acc_type != AccTypesWithVersion::YourPoolDataV1 as u8 {
-        msg!("CustomError::ExpectedAccountTypeMismatched");
-        return Err(CustomError::ExpectedAccountTypeMismatched.into());
     }
 
     let mut is_funder_authorised = false;
@@ -263,10 +254,10 @@ pub fn process_initialize_your_pool(
     }
 
     if fund_pool > 0 {
-        msg!("Calling the token program to transfer CWAR rewards to Rewards Vault...");
+        msg!("Calling the token program to transfer YOUR rewards to Rewards Vault...");
         invoke(
             &spl_token::instruction::transfer(
-                token_program.key,
+                token_program.clone().key,
                 your_rewards_ata_to_debit.key,
                 your_rewards_vault.key,
                 funder_wallet_account.key,
