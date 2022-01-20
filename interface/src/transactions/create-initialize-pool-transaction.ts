@@ -12,7 +12,6 @@ import { ConnectionService } from '../config';
 import { Pubkeys } from '../constants';
 import { CwarStakingInstructions } from '../models';
 import {findAssociatedTokenAddress, getPoolSignerPdaNonce} from '../utils';
-import {generateKeyPair} from "crypto";
 
 export async function createInitializePoolTransaction(
     poolOwnerWallet: PublicKey,
@@ -24,7 +23,6 @@ export async function createInitializePoolTransaction(
     const connection = ConnectionService.getConnection();
     const poolStorageBytes = 374;
     const rewardDuration = rewardDurationInDays * 86400;
-    //const cwarPoolStorageAccountl = Keypair.generate();
     console.log('Pool Storage Pubkey: ', cwarPoolStorageAccount.publicKey.toString());
     console.log('Staking Vault Pubkey: ', cwarStakingVault.publicKey.toString());
     console.log('Rewards Vault Pubkey: ', cwarRewardsVault.publicKey.toString());
@@ -143,54 +141,7 @@ export async function createInitializePoolTransaction(
             ...new BN(rewardDuration).toArray('le', 8), ...new BN(pool_nonce.valueOf()).toArray('le', 1), ... new BN
             (10000).toArray('le', 8)
         ])
-    }
-
-    /*const initPoolStorageAccountIx = new TransactionInstruction({
-        programId: Pubkeys.cwarStakingProgramId,
-        keys: [
-            {
-                pubkey: poolOwnerWallet,
-                isSigner: true,
-                isWritable: false,
-            },
-            {
-                pubkey: cwarPoolStorageAccount.publicKey,
-                isSigner: false,
-                isWritable: true,
-            },
-            {
-                pubkey: Pubkeys.stakingMintPubkey,
-                isSigner: false,
-                isWritable: false,
-            },
-            {
-                pubkey: cwarStakingVault.publicKey,
-                isSigner: false,
-                isWritable: true,
-            },
-            {
-                pubkey: Pubkeys.rewardsMintPubkey,
-                isSigner: false,
-                isWritable: false,
-            },
-            {
-                pubkey: cwarRewardsVault.publicKey,
-                isSigner: false,
-                isWritable: true,
-            },
-            {
-                pubkey: TOKEN_PROGRAM_ID,
-                isSigner: false,
-                isWritable: false,
-            }
-        ],
-        data: Buffer.from([
-            CwarStakingInstructions.InitializeCwarPool,
-            ...new BN(rewardDuration).toArray('le', 8), ...new BN(pool_nonce.valueOf()).toArray('le', 1), ... new BN
-            (28).toArray('le', 8)
-        ])
-    }*/
-    );
+    });
 
     const transaction = new Transaction().add(
         createStakingVaultIx,
