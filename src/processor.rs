@@ -30,14 +30,14 @@ impl Processor {
             Instruction::InitializePool {
                 reward_duration,
                 pool_nonce,
-                //fund_amount,
+                fund_amount,
             } => {
                 msg!("Instruction::InitializePool");
                 process_initialize_your_pool(
                     accounts,
                     reward_duration,
                     pool_nonce,
-                    228,//fund_amount,
+                    fund_amount,
                     program_id,
                 )
             }

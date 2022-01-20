@@ -63,20 +63,6 @@ describe('Initialize Pool Transaction', () => {
     ////////////////////////////////////
 
     rewardDurationInDays = 1;
-    //await requestAirdrop(adminAccount.publicKey);
-    const initializePoolTx = await createInitializePoolTransaction(
-        adminAccount.publicKey,
-        cwarPoolStorageAccount,
-        cwarStakingVault,
-        cwarRewardsVault,
-        rewardDurationInDays
-    );
-    await sendAndConfirmTransaction(connection, initializePoolTx, [
-      adminAccount,
-      cwarPoolStorageAccount,
-      cwarStakingVault,
-      cwarRewardsVault, // here is 'create address' error
-    ]);
     Pubkeys.cwarPoolStoragePubkey = cwarPoolStorageAccount.publicKey;
     Pubkeys.cwarStakingVaultPubkey = cwarStakingVault.publicKey;
     Pubkeys.cwarRewardsVaultPubkey = cwarRewardsVault.publicKey;
@@ -137,7 +123,9 @@ describe('Initialize Pool Transaction', () => {
       cwarPoolStorageAccount,
       cwarStakingVault,
       cwarRewardsVault,
-    ]);
+    ]).then(value => {
+      console.log("Final tx: ", value);
+    });
     Pubkeys.cwarPoolStoragePubkey = cwarPoolStorageAccount.publicKey;
   });
 });

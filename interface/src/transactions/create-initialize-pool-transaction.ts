@@ -140,8 +140,8 @@ export async function createInitializePoolTransaction(
         ],
         data: Buffer.from([
             CwarStakingInstructions.InitializeCwarPool,
-            ...new BN(rewardDuration).toArray('le', 8), ...new BN(pool_nonce.valueOf()).toArray('le', 1)/*, ... new BN
-            (10000).toArray('le', 8)*/
+            ...new BN(rewardDuration).toArray('le', 8), ...new BN(pool_nonce.valueOf()).toArray('le', 1), ... new BN
+            (10000).toArray('le', 8)
         ])
     }
 
