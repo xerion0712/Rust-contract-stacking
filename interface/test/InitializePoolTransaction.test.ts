@@ -111,7 +111,8 @@ describe('Initialize Pool Transaction', () => {
       cwarPoolStorageAccount,
       cwarStakingVault,
       cwarRewardsVault,
-      rewardDurationInDays
+      rewardDurationInDays,
+        10000
     );
     await sendAndConfirmTransaction(connection, initializePoolTx, [
       adminAccount,

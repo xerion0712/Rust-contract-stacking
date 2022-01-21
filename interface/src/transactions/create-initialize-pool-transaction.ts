@@ -18,7 +18,8 @@ export async function createInitializePoolTransaction(
     cwarPoolStorageAccount: Keypair,
     cwarStakingVault: Keypair,
     cwarRewardsVault: Keypair,
-    rewardDurationInDays: number
+    rewardDurationInDays: number,
+    fundPoolAmount: number
 ): Promise<Transaction> {
     const connection = ConnectionService.getConnection();
     const poolStorageBytes = 374;
@@ -139,7 +140,7 @@ export async function createInitializePoolTransaction(
         data: Buffer.from([
             CwarStakingInstructions.InitializeCwarPool,
             ...new BN(rewardDuration).toArray('le', 8), ...new BN(pool_nonce.valueOf()).toArray('le', 1), ... new BN
-            (10000).toArray('le', 8)
+            (fundPoolAmount).toArray('le', 8)
         ])
     });
 
