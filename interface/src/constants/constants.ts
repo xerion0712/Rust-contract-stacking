@@ -4,11 +4,11 @@ import BN from "bn.js";
  * General constants
  */
 export class Constants {
-  static cwarDecimals = 9;
+  static yourDecimals = 9;
 
-  static toCwarRaw = Math.pow(10, Constants.cwarDecimals);
+  static toYourRaw = Math.pow(10, Constants.yourDecimals);
 
-  static maxCwarSupply = new BN(1000_000_000).mul(new BN(Constants.toCwarRaw));
+  static maxYourSupply = new BN(1000_000_000).mul(new BN(Constants.toYourRaw));
 
   static rewardTokenDecimals = 9;
 

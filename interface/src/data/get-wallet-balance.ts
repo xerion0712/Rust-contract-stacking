@@ -10,12 +10,12 @@ import BN from 'bn.js';
  * @param walletPublicKey wallet pubkey
  * @returns amount of CWAR in the given wallet
  */
-export async function getCwarWalletBalance(walletPublicKey: PublicKey): Promise<number> {
+export async function getYourWalletBalance(walletPublicKey: PublicKey): Promise<number> {
   const connection = ConnectionService.getConnection();
 
   const cwarAssociatedAccPubkey = await findAssociatedTokenAddress(
     walletPublicKey,
-    Pubkeys.cwarTokenMintPubkey
+    Pubkeys.yourTokenMintPubkey
   );
 
   let balance;
@@ -82,7 +82,7 @@ export async function getStakingVaultBalance(): Promise<number> {
 
   try {
     balance = await connection.getTokenAccountBalance(
-      Pubkeys.cwarStakingVaultPubkey
+      Pubkeys.yourStakingVaultPubkey
     );
   } catch (err) {
     console.log(err);
@@ -98,7 +98,7 @@ export async function getStakingVaultBalanceRaw(): Promise<BN> {
 
   try {
     balance = await connection.getTokenAccountBalance(
-      Pubkeys.cwarStakingVaultPubkey
+      Pubkeys.yourStakingVaultPubkey
     );
   } catch (err) {
     console.log(err);
@@ -114,7 +114,7 @@ export async function getRewardsVaultBalance(): Promise<number> {
 
   try {
     balance = await connection.getTokenAccountBalance(
-      Pubkeys.cwarRewardsVaultPubkey
+      Pubkeys.yourRewardsVaultPubkey
     );
   } catch (err) {
     console.log(err);
@@ -130,7 +130,7 @@ export async function getRewardsVaultBalanceRaw(): Promise<BN> {
 
   try {
     balance = await connection.getTokenAccountBalance(
-      Pubkeys.cwarRewardsVaultPubkey
+      Pubkeys.yourRewardsVaultPubkey
     );
   } catch (err) {
     console.log(err);

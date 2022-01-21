@@ -43,7 +43,7 @@ export class UserData {
     }
 
     getBalanceStaked(): number {
-        return this.balanceStaked.div(new BN(Constants.toCwarRaw)).toNumber();
+        return this.balanceStaked.div(new BN(Constants.toYourRaw)).toNumber();
     }
 
     getNonce(): number {

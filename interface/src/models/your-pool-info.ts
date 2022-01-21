@@ -76,7 +76,7 @@ export class CwarPoolData {
   }
 
   getRewardRate(): number {
-    return this.rewardRate.div(new BN(Constants.toCwarRaw)).toNumber();
+    return this.rewardRate.div(new BN(Constants.toYourRaw)).toNumber();
   }
 
   getRewardDuration(): number {

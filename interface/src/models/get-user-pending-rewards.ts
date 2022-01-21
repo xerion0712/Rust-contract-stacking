@@ -9,7 +9,7 @@ import { getUserStorageAccount } from "../utils";
 
 export async function getUserPendingRewards(userWallet: PublicKey): Promise<number> {
     const U64_MAX = new BN("18446744073709551615", 10);
-    let cwarPoolData = await CwarPoolData.fromAccount(Pubkeys.cwarPoolStoragePubkey);
+    let cwarPoolData = await CwarPoolData.fromAccount(Pubkeys.yourPoolStoragePubkey);
     if (cwarPoolData == null) {
         throw new Error("Pool Does Not Exist");
     }
