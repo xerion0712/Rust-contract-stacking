@@ -20,7 +20,7 @@ use solana_program::{
 };
 use spl_token::state::Account as TokenAccount;
 
-pub fn process_unstake_cwar(
+pub fn process_unstake(
     accounts: &[AccountInfo],
     amount_to_withdraw: u64,
     program_id: &Pubkey,
@@ -102,11 +102,11 @@ pub fn process_unstake_cwar(
         return Err(CustomError::InsufficientFundsToUnstake.into());
     }
 
-    let total_cwar_staked = your_staking_vault_data.amount;
+    let total_your_staked = your_staking_vault_data.amount;
     utils::update_rewards(
         &mut your_pool_data,
         Some(&mut user_storage_data),
-        total_cwar_staked,
+        total_your_staked,
     )?;
     msg!("Calling the token program to transfer to User from Staking Vault...");
     invoke_signed(

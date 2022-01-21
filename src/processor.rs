@@ -4,7 +4,7 @@ use {
     claim_rewards::process_claim_rewards, close_pool::process_close_pool,
     close_user::process_close_user, create_user::process_create_user,
     initialize_pool::process_initialize_your_pool, stake_cwar::process_stake_cwar,
-    unstake_cwar::process_unstake_cwar,
+    unstake_cwar::process_unstake,
 };
 
 pub mod claim_rewards;
@@ -53,7 +53,7 @@ impl Processor {
 
             Instruction::Unstake { amount_to_withdraw } => {
                 msg!("Instruction::Unstake");
-                process_unstake_cwar(accounts, amount_to_withdraw, program_id)
+                process_unstake(accounts, amount_to_withdraw, program_id)
             }
 
             Instruction::ClaimRewards {} => {
