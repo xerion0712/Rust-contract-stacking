@@ -30,7 +30,7 @@ pub fn process_stake_cwar(
     let user_storage_account = next_account_info(account_info_iter)?;
     let your_pool_storage_account = next_account_info(account_info_iter)?;
     let your_staking_vault = next_account_info(account_info_iter)?;
-    let user_cwar_ata = next_account_info(account_info_iter)?;
+    let user_your_ata = next_account_info(account_info_iter)?;
     let token_program = next_account_info(account_info_iter)?;
 
     if !user_wallet_account.is_signer {
@@ -100,24 +100,24 @@ pub fn process_stake_cwar(
         return Err(CustomError::InvalidStakingVault.into());
     }
 
-    let total_cwar_staked = your_staking_vault_data.amount;
+    let total_your_staked = your_staking_vault_data.amount;
     utils::update_rewards(
         &mut your_pool_data,
         Some(&mut user_storage_data),
-        total_cwar_staked,
+        total_your_staked,
     )?;
     msg!("Calling the token program to transfer to Staking Vault...");
     invoke(
         &spl_token::instruction::transfer(
             token_program.key,
-            user_cwar_ata.key,
+            user_your_ata.key,
             your_staking_vault.key,
             user_wallet_account.key,
             &[],
             amount_to_deposit,
         )?,
         &[
-            user_cwar_ata.clone(),
+            user_your_ata.clone(),
             your_staking_vault.clone(),
             user_wallet_account.clone(),
             token_program.clone(),
