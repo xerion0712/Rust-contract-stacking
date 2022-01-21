@@ -1,26 +1,39 @@
-import {getAdminAccount, requestAirdrop, setupTest} from './testHelpers';
+import {
+  getAdminAccount,
+  requestAirdrop,
+  setupTest,
+} from './testHelpers';
 import {Keypair, sendAndConfirmTransaction, Transaction} from '@solana/web3.js';
-import {createInitializePoolTransaction} from '../src/transactions';
+import {
+  createInitializePoolTransaction,
+  createUserTransaction,
+} from '../src/transactions';
 import {ConnectionService} from '../src/config';
 import {Constants, Pubkeys} from '../src/constants';
-import {ASSOCIATED_TOKEN_PROGRAM_ID, Token, TOKEN_PROGRAM_ID, u64} from '@solana/spl-token';
-import {findAssociatedTokenAddress} from '../src/utils';
 import BN from 'bn.js';
+import {
+  ASSOCIATED_TOKEN_PROGRAM_ID,
+  Token,
+  TOKEN_PROGRAM_ID,
+  u64,
+} from '@solana/spl-token';
+import {findAssociatedTokenAddress} from '../src/utils';
 
 setupTest();
 
-describe('Initialize Pool Transaction', () => {
+describe('Create User Transaction', () => {
   const adminAccount: Keypair = getAdminAccount();
   let cwarPoolStorageAccount: Keypair;
   let cwarStakingVault: Keypair;
   let cwarRewardsVault: Keypair;
   let rewardDurationInDays: number;
+  let userWallet: Keypair;
   const cwarDecimals = 9;
   const rewardTokenDecimals = 9;
   beforeEach(async () => {
     Constants.cwarDecimals = cwarDecimals;
     Constants.rewardTokenDecimals = rewardTokenDecimals;
-    // pool owner wallet == admin
+
     const connection = ConnectionService.getConnection();
 
     // Create Cwar Test Token
@@ -50,18 +63,8 @@ describe('Initialize Pool Transaction', () => {
     cwarStakingVault = Keypair.generate();
     cwarRewardsVault = Keypair.generate();
     rewardDurationInDays = 1;
-    await requestAirdrop(adminAccount.publicKey);
 
-    Pubkeys.cwarStakingVaultPubkey = cwarStakingVault.publicKey;
-    Pubkeys.cwarRewardsVaultPubkey = cwarRewardsVault.publicKey;
-
-    ////////////////////////////////////
-
-    rewardDurationInDays = 1;
-    Pubkeys.cwarPoolStoragePubkey = cwarPoolStorageAccount.publicKey;
-    Pubkeys.cwarStakingVaultPubkey = cwarStakingVault.publicKey;
-    Pubkeys.cwarRewardsVaultPubkey = cwarRewardsVault.publicKey;
-
+    /////////////////
     const funderRewardTokenAta = await findAssociatedTokenAddress(
         adminAccount.publicKey,
         Pubkeys.rewardsMintPubkey
@@ -102,10 +105,9 @@ describe('Initialize Pool Transaction', () => {
         [],
         new u64(rewardTokensToMintRaw)
     );
-  });
-
-  test('Initialize Pool', async () => {
-    const connection = ConnectionService.getConnection();
+    /////////////////
+    
+    await requestAirdrop(adminAccount.publicKey);
     const initializePoolTx = await createInitializePoolTransaction(
       adminAccount.publicKey,
       cwarPoolStorageAccount,
@@ -118,9 +120,54 @@ describe('Initialize Pool Transaction', () => {
       cwarPoolStorageAccount,
       cwarStakingVault,
       cwarRewardsVault,
-    ]).then(value => {
-      console.log("Final tx: ", value);
-    });
+    ]);
+
     Pubkeys.cwarPoolStoragePubkey = cwarPoolStorageAccount.publicKey;
+    Pubkeys.cwarStakingVaultPubkey = cwarStakingVault.publicKey;
+    Pubkeys.cwarRewardsVaultPubkey = cwarRewardsVault.publicKey;
+
+    userWallet = Keypair.generate();
+    await requestAirdrop(userWallet.publicKey);
+    // mint 1000 Cwar Test Tokens to user for Staking
+    const userCwarTokenAta = await findAssociatedTokenAddress(
+      userWallet.publicKey,
+      Pubkeys.cwarTokenMintPubkey
+    );
+
+    const userCwarAtaInfo = await connection.getAccountInfo(userCwarTokenAta);
+
+    const doesUserCwarAtaExist = userCwarAtaInfo?.owner !== undefined;
+
+    if (!doesUserCwarAtaExist) {
+      const createUserCwarAtaIx = Token.createAssociatedTokenAccountInstruction(
+        ASSOCIATED_TOKEN_PROGRAM_ID,
+        TOKEN_PROGRAM_ID,
+        Pubkeys.cwarTokenMintPubkey,
+        userCwarTokenAta,
+        userWallet.publicKey,
+        userWallet.publicKey
+      );
+      const createUserCwarAtaTx = new Transaction().add(createUserCwarAtaIx);
+      await sendAndConfirmTransaction(connection, createUserCwarAtaTx, [
+        userWallet,
+      ]);
+    }
+    const cwarTokensToMint: number = 1000;
+    const cwarTokensToMintRaw = new BN(cwarTokensToMint)
+      .mul(new BN(Constants.toCwarRaw))
+      .toArray('le', 8);
+    await cwarTokenMint.mintTo(
+      userCwarTokenAta,
+      adminAccount.publicKey,
+      [],
+      new u64(cwarTokensToMintRaw)
+    );
+  });
+
+  test('Create User', async () => {
+    const connection = ConnectionService.getConnection();
+    //create user
+    const createUserTx = await createUserTransaction(userWallet.publicKey);
+    await sendAndConfirmTransaction(connection, createUserTx, [userWallet]);
   });
 });
