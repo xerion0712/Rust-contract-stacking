@@ -82,6 +82,13 @@ pub fn process_close_pool(accounts: &[AccountInfo], program_id: &Pubkey) -> Prog
     let total_cwar_staked = your_staking_vault_data.amount;
 
     let now = Clock::get()?.unix_timestamp;
+
+    msg!("1: {}", your_pool_data.reward_duration_end <= 0u64);
+    msg!("2.1: {}", your_pool_data.reward_duration_end);
+    msg!("2.2: {}", now as u64);
+    msg!("3: {}", your_pool_data.user_stake_count);
+    msg!("4: {}", total_cwar_staked != 0u64);
+
     if your_pool_data.reward_duration_end <= 0u64
         || your_pool_data.reward_duration_end >= (now as u64)
         || your_pool_data.user_stake_count != 0u32

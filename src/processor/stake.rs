@@ -20,7 +20,7 @@ use solana_program::{
 };
 use spl_token::state::Account as TokenAccount;
 
-pub fn process_stake_cwar(
+pub fn process_stake(
     accounts: &[AccountInfo],
     amount_to_deposit: u64,
     program_id: &Pubkey,

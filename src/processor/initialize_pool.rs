@@ -142,11 +142,6 @@ pub fn process_initialize_your_pool(
         ],
     )?;
 
-    if reward_duration < constants::MIN_DURATION {
-        msg!("CustomError::DurationTooShort");
-        return Err(CustomError::DurationTooShort.into());
-    }
-
     let your_staking_vault_data = TokenAccount::unpack(&your_staking_vault.data.borrow())?;
     if your_staking_vault_data.mint != *your_staking_mint.key {
         msg!("CustomError::MintMismatched");
@@ -159,7 +154,10 @@ pub fn process_initialize_your_pool(
         return Err(CustomError::MintMismatched.into());
     }
     let your_pool_storage_account_clone = your_pool_storage_account.clone();
-    let mut your_pool_data_byte_array = your_pool_storage_account_clone.data.try_borrow_mut().unwrap();
+    let mut your_pool_data_byte_array = your_pool_storage_account_clone
+        .data
+        .try_borrow_mut()
+        .unwrap();
     let mut your_pool_data: YourPool =
         YourPool::try_from_slice(&your_pool_data_byte_array[0usize..YOUR_POOL_STORAGE_TOTAL_BYTES])
             .unwrap();
@@ -182,7 +180,7 @@ pub fn process_initialize_your_pool(
     your_pool_data.pda_nonce = bump_seed;
     your_pool_data.reward_duration_end = 0u64;
 
-    your_pool_data.user_stake_count += 1u32;
+    //your_pool_data.user_stake_count += 1u32; // TODO: Think on it
 
     your_pool_data_byte_array[0usize..YOUR_POOL_STORAGE_TOTAL_BYTES]
         .copy_from_slice(&your_pool_data.try_to_vec().unwrap());
