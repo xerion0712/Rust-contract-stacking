@@ -3,18 +3,16 @@ use crate::instruction::Instruction;
 use {
     claim_rewards::process_claim_rewards, close_pool::process_close_pool,
     close_user::process_close_user, create_user::process_create_user,
-    initialize_pool::process_initialize_your_pool, stake_cwar::process_stake_cwar,
-    unstake_cwar::process_unstake,
+    initialize_pool::process_initialize_your_pool, stake::process_stake, unstake::process_unstake,
 };
 
 pub mod claim_rewards;
 pub mod close_pool;
 pub mod close_user;
 pub mod create_user;
-pub mod fund_pool;
 pub mod initialize_pool;
-pub mod stake_cwar;
-pub mod unstake_cwar;
+pub mod stake;
+pub mod unstake;
 
 use solana_program::{account_info::AccountInfo, entrypoint::ProgramResult, msg, pubkey::Pubkey};
 
@@ -48,7 +46,7 @@ impl Processor {
 
             Instruction::Stake { amount_to_deposit } => {
                 msg!("Instruction::Stake");
-                process_stake_cwar(accounts, amount_to_deposit, program_id)
+                process_stake(accounts, amount_to_deposit, program_id)
             }
 
             Instruction::Unstake { amount_to_withdraw } => {
@@ -62,12 +60,12 @@ impl Processor {
             }
 
             Instruction::ClosePool {} => {
-                msg!("CryowarInstruction::ClosePool");
+                msg!("Instruction::ClosePool");
                 process_close_pool(accounts, program_id)
             }
 
             Instruction::CloseUser {} => {
-                msg!("CryowarInstruction::CloseUser");
+                msg!("Instruction::CloseUser");
                 process_close_user(accounts, program_id)
             }
         }
