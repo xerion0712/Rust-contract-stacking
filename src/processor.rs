@@ -3,7 +3,7 @@ use crate::instruction::Instruction;
 use {
     claim_rewards::process_claim_rewards, close_pool::process_close_pool,
     close_user::process_close_user, create_user::process_create_user,
-    initialize_cwar_pool::process_initialize_your_pool, stake_cwar::process_stake_cwar,
+    initialize_pool::process_initialize_your_pool, stake_cwar::process_stake_cwar,
     unstake_cwar::process_unstake_cwar,
 };
 
@@ -12,7 +12,7 @@ pub mod close_pool;
 pub mod close_user;
 pub mod create_user;
 pub mod fund_pool;
-pub mod initialize_cwar_pool;
+pub mod initialize_pool;
 pub mod stake_cwar;
 pub mod unstake_cwar;
 
