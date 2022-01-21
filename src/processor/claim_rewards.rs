@@ -99,11 +99,11 @@ pub fn process_claim_rewards(accounts: &[AccountInfo], program_id: &Pubkey) -> P
         return Err(CustomError::InvalidStakingVault.into());
     }
 
-    let total_cwar_staked = your_staking_vault_data.amount;
+    let total_your_staked = your_staking_vault_data.amount;
     utils::update_rewards(
         &mut your_pool_data,
         Some(&mut user_storage_data),
-        total_cwar_staked,
+        total_your_staked,
     )?;
     if user_storage_data.your_reward_per_token_pending > 0u64 {
         let mut reward_amount = user_storage_data.your_reward_per_token_pending;
@@ -115,7 +115,7 @@ pub fn process_claim_rewards(accounts: &[AccountInfo], program_id: &Pubkey) -> P
         }
 
         if reward_amount > 0 {
-            msg!("Calling the token program to transfer CWAR to User from Rewards Vault...");
+            msg!("Calling the token program to transfer to User from Rewards Vault...");
             invoke_signed(
                 &spl_token::instruction::transfer(
                     token_program.key,
