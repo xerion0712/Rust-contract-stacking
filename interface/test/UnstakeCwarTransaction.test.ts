@@ -1,12 +1,11 @@
-import {
-  getAdminAccount,
-  requestAirdrop,
-  setupTest,
-} from './testHelpers';
+import {getAdminAccount, requestAirdrop, setupTest} from './testHelpers';
 import {Keypair, sendAndConfirmTransaction, Transaction} from '@solana/web3.js';
 import {
   createInitializePoolTransaction,
+  stakeCwarTransaction,
+  claimRewardsTransaction,
   createUserTransaction,
+  unstakeCwarTransaction,
 } from '../src/transactions';
 import {ConnectionService} from '../src/config';
 import {Constants, Pubkeys} from '../src/constants';
@@ -21,13 +20,14 @@ import {findAssociatedTokenAddress} from '../src/utils';
 
 setupTest();
 
-describe('Create User Transaction', () => {
+describe('Unstake CWAR Transaction', () => {
   const adminAccount: Keypair = getAdminAccount();
   let cwarPoolStorageAccount: Keypair;
   let cwarStakingVault: Keypair;
   let cwarRewardsVault: Keypair;
   let rewardDurationInDays: number;
   let userWallet: Keypair;
+  let funder1Wallet: Keypair;
   const cwarDecimals = 9;
   const rewardTokenDecimals = 9;
   beforeEach(async () => {
@@ -63,6 +63,7 @@ describe('Create User Transaction', () => {
     cwarStakingVault = Keypair.generate();
     cwarRewardsVault = Keypair.generate();
     rewardDurationInDays = 1;
+
 
     /////////////////
     const funderRewardTokenAta = await findAssociatedTokenAddress(
@@ -106,7 +107,7 @@ describe('Create User Transaction', () => {
         new u64(rewardTokensToMintRaw)
     );
     /////////////////
-    
+
     await requestAirdrop(adminAccount.publicKey);
     const initializePoolTx = await createInitializePoolTransaction(
       adminAccount.publicKey,
@@ -122,7 +123,6 @@ describe('Create User Transaction', () => {
       cwarStakingVault,
       cwarRewardsVault,
     ]);
-
     Pubkeys.cwarPoolStoragePubkey = cwarPoolStorageAccount.publicKey;
     Pubkeys.cwarStakingVaultPubkey = cwarStakingVault.publicKey;
     Pubkeys.cwarRewardsVaultPubkey = cwarRewardsVault.publicKey;
@@ -163,12 +163,32 @@ describe('Create User Transaction', () => {
       [],
       new u64(cwarTokensToMintRaw)
     );
-  });
 
-  test('Create User', async () => {
-    const connection = ConnectionService.getConnection();
     //create user
     const createUserTx = await createUserTransaction(userWallet.publicKey);
     await sendAndConfirmTransaction(connection, createUserTx, [userWallet]);
+    // stake tokens
+    const amountToStake = 1000;
+    const stakeCwarTx = await stakeCwarTransaction(
+      userWallet.publicKey,
+      amountToStake
+    );
+    await sendAndConfirmTransaction(connection, stakeCwarTx, [userWallet]);
+
+    // Claim Rewards
+    const claimRewardsTx = await claimRewardsTransaction(userWallet.publicKey);
+    await sendAndConfirmTransaction(connection, claimRewardsTx, [userWallet]);
+  });
+
+  test('Unstake CWAR', async () => {
+    const connection = ConnectionService.getConnection();
+
+    // Unstake Tokens
+    const amountToUnstake = 1000;
+    const unstakeCwarTx = await unstakeCwarTransaction(
+      userWallet.publicKey,
+      amountToUnstake
+    );
+    await sendAndConfirmTransaction(connection, unstakeCwarTx, [userWallet]);
   });
 });
