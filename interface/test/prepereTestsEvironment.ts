@@ -106,7 +106,7 @@ async function setupEnvironment() {
     const userYourDataInfo = await connection.getAccountInfo(userYourTokenData);
     const doesUserYourDataExist = userYourDataInfo?.owner !== undefined;
     if (!doesUserYourDataExist) {
-        const createUserCwarAtaIx = Token.createAssociatedTokenAccountInstruction(
+        const createUserYourDataIx = Token.createAssociatedTokenAccountInstruction(
             ASSOCIATED_TOKEN_PROGRAM_ID,
             TOKEN_PROGRAM_ID,
             Pubkeys.yourTokenMintPubkey,
@@ -114,8 +114,8 @@ async function setupEnvironment() {
             walletAccount.publicKey,
             walletAccount.publicKey
         );
-        const createUserCwarAtaTx = new Transaction().add(createUserCwarAtaIx);
-        await sendAndConfirmTransaction(connection, createUserCwarAtaTx, [
+        const createUserYourDataTx = new Transaction().add(createUserYourDataIx);
+        await sendAndConfirmTransaction(connection, createUserYourDataTx, [
             walletAccount,
         ]);
     }

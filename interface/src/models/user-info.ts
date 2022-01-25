@@ -10,7 +10,7 @@ import { Constants } from '../constants';
 export class UserData {
     accountType: number;
     userWallet: StringPublicKey;
-    cwarPool: StringPublicKey;
+    yourPool: StringPublicKey;
     balanceStaked: BN;
     nonce: number;
     rewardPerTokenPending: BN;
@@ -19,7 +19,7 @@ export class UserData {
     constructor(args: {
         accountType: number;
         userWallet: StringPublicKey;
-        cwarPool: StringPublicKey;
+        yourPool: StringPublicKey;
         balanceStaked: BN;
         nonce: number;
         rewardPerTokenPending: BN;
@@ -27,7 +27,7 @@ export class UserData {
     }) {
         this.accountType = args.accountType;
         this.userWallet = args.userWallet;
-        this.cwarPool = args.cwarPool;
+        this.yourPool = args.yourPool;
         this.balanceStaked = args.balanceStaked;
         this.nonce = args.nonce;
         this.rewardPerTokenPending = args.rewardPerTokenPending;
@@ -39,7 +39,7 @@ export class UserData {
     }
 
     getPoolPubkey(): PublicKey {
-        return new PublicKey(this.cwarPool);
+        return new PublicKey(this.yourPool);
     }
 
     getBalanceStaked(): number {
@@ -87,7 +87,7 @@ export const USER_STORAGE_DATA_ON_CHAIN_SCHEMA = new Map<any, any>([
             fields: [
                 ['accountType', 'u8'],
                 ['userWallet', 'pubkeyAsString'],
-                ['cwarPool', 'pubkeyAsString'],
+                ['yourPool', 'pubkeyAsString'],
                 ['balanceStaked', 'u64'],
                 ['nonce', 'u8'],
                 ['rewardPerTokenPending', 'u64'],

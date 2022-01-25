@@ -7,7 +7,7 @@ import { ConnectionService } from '../config';
 import { extendBorsh } from '../data/borsch';
 import { Constants } from '../constants';
 
-export class CwarPoolData {
+export class YourPoolData {
   accountType: number;
     ownerWallet: StringPublicKey;
     stakingVault: StringPublicKey;
@@ -111,19 +111,19 @@ export class CwarPoolData {
     return this.rewardDurationEnd.toNumber();
   }
 
-  static async fromAccount(account: PublicKey): Promise<CwarPoolData | null> {
+  static async fromAccount(account: PublicKey): Promise<YourPoolData | null> {
     const connection = ConnectionService.getConnection();
     const accountData = await connection.getAccountInfo(account);
     if (!accountData) return null;
-    return CwarPoolData.fromBuffer(accountData?.data);
+    return YourPoolData.fromBuffer(accountData?.data);
   }
 
-  static fromBuffer(buffer: Buffer): CwarPoolData {
+  static fromBuffer(buffer: Buffer): YourPoolData {
     extendBorsh();
     return deserializeUnchecked(
-      CWAR_POOL_DATA_ON_CHAIN_SCHEMA,
-      CwarPoolData,
-      buffer.slice(0, CWAR_POOL_STORAGE_TOTAL_BYTES)
+      YOUR_POOL_DATA_ON_CHAIN_SCHEMA,
+      YourPoolData,
+      buffer.slice(0, YOUR_POOL_STORAGE_TOTAL_BYTES)
     );
   }
 }
@@ -147,9 +147,9 @@ export class FundersData {
       this.funder5 = args.funder5;
     }
   }
-export const CWAR_POOL_STORAGE_TOTAL_BYTES = 374;
+export const YOUR_POOL_STORAGE_TOTAL_BYTES = 374;
 
-export const CWAR_POOL_DATA_ON_CHAIN_SCHEMA = new Map<any, any>([
+export const YOUR_POOL_DATA_ON_CHAIN_SCHEMA = new Map<any, any>([
     [
         FundersData, {
             kind: 'struct',
@@ -163,7 +163,7 @@ export const CWAR_POOL_DATA_ON_CHAIN_SCHEMA = new Map<any, any>([
         }
     ],
   [
-    CwarPoolData,
+    YourPoolData,
     {
       kind: 'struct',
       fields: [

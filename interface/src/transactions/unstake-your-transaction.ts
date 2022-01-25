@@ -28,7 +28,7 @@ export async function unstakeYourTransaction(
 
     const poolSignerPda = await getPoolSignerPDA();
 
-    const unstakeCwarIx = new TransactionInstruction({
+    const unstakeYourIx = new TransactionInstruction({
         programId: Pubkeys.yourStakingProgramId,
         keys: [
             {
@@ -70,11 +70,11 @@ export async function unstakeYourTransaction(
             YourStakingInstructions.UnstakeYour, ...amountToWithdrawRaw.toArray('le', 8)
         ]),
     });
-    const unstakeCwarTx = new Transaction().add(unstakeCwarIx);
-    unstakeCwarTx.recentBlockhash = (
+    const unstakeYourTx = new Transaction().add(unstakeYourIx);
+    unstakeYourTx.recentBlockhash = (
         await connection.getRecentBlockhash()
     ).blockhash;
-    unstakeCwarTx.feePayer = userWallet;
+    unstakeYourTx.feePayer = userWallet;
 
-    return unstakeCwarTx;
+    return unstakeYourTx;
 }

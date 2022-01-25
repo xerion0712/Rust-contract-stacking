@@ -26,7 +26,7 @@ export async function stakeYourTransaction(
 
     const amountToDepositRaw = new BN(amountToDeposit).mul(new BN(Constants.toYourRaw));
 
-    const stakeCwarIx = new TransactionInstruction({
+    const stakeYourIx = new TransactionInstruction({
         programId: Pubkeys.yourStakingProgramId,
         keys: [
             {
@@ -63,11 +63,11 @@ export async function stakeYourTransaction(
             YourStakingInstructions.StakeYour, ...amountToDepositRaw.toArray('le', 8)
         ]),
     });
-    const stakeCwarTx = new Transaction().add(stakeCwarIx);
-    stakeCwarTx.recentBlockhash = (
+    const stakeYourTx = new Transaction().add(stakeYourIx);
+    stakeYourTx.recentBlockhash = (
         await connection.getRecentBlockhash()
     ).blockhash;
-    stakeCwarTx.feePayer = userWallet;
+    stakeYourTx.feePayer = userWallet;
 
-    return stakeCwarTx;
+    return stakeYourTx;
 }
