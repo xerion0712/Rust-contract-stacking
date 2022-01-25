@@ -43,8 +43,8 @@ pub enum CustomError {
     ///Account Owner Should Be Token Program
     #[error("Account Owner Should Be Token Program")]
     AccountOwnerShouldBeTokenProgram,
-    // Dervied Key Is Invalid
-    #[error("Dervied Key Is Invalid")]
+    // Derived Key Is Invalid
+    #[error("Derived Key Is Invalid")]
     DerivedKeyInvalid,
     ///User Storage Account Already Initialized
     #[error("User Storage Account Already Initialized")]
@@ -94,9 +94,12 @@ pub enum CustomError {
     /// Funder Is Not Present In Funder List
     #[error("Funder Is Not Present In Funder List")]
     FunderNotPresent,
-    // Pool Adress Already Initialized
-    #[error("Pool Adress Already Initialized")]
+    // Pool Address Already Initialized
+    #[error("Pool Address Already Initialized")]
     PoolAddressAlreadyInitialized,
+    // Pool Address Already Initialized
+    #[error("User claim reward timeout didn't expired")]
+    UserClaimRewardTimeout,
 }
 
 impl From<CustomError> for ProgramError {

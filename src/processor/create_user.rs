@@ -83,8 +83,7 @@ pub fn process_create_user(
         your_pool: *your_pool_storage_account.key,
         balance_your_staked: 0u64,
         nonce: bump_seed,
-        your_reward_per_token_pending: 0u64,
-        your_reward_per_token_completed: 0u128,
+        claim_timeout_date: 0i64,
     };
 
     let mut user_data_byte_array = user_storage_account.data.try_borrow_mut().unwrap();
