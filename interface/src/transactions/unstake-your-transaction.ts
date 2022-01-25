@@ -3,15 +3,15 @@ import {
     Transaction,
     TransactionInstruction,
 } from '@solana/web3.js';
-import { findAssociatedTokenAddress, getUserStorageAccount } from '../utils';
+import { findAssociatedTokenAddress, getPoolSignerPDA, getUserStorageAccount } from '../utils';
 import { Constants, Pubkeys } from '../constants';
 import { ConnectionService } from '../config';
-import { CwarStakingInstructions } from '../models';
+import { YourStakingInstructions } from '../models';
 import BN from 'bn.js';
 import { TOKEN_PROGRAM_ID } from '@solana/spl-token';
-export async function stakeCwarTransaction(
+export async function unstakeYourTransaction(
     userWallet: PublicKey,
-    amountToDeposit: number
+    amountToWithdraw: number
 ): Promise<Transaction> {
     const connection = ConnectionService.getConnection();
 
@@ -19,15 +19,17 @@ export async function stakeCwarTransaction(
         userWallet
     );
 
-    const stakingAssociatedAccPubkey = await findAssociatedTokenAddress(
+    const stakingATAPubkey = await findAssociatedTokenAddress(
         userWallet,
         Pubkeys.stakingMintPubkey
     );
 
-    const amountToDepositRaw = new BN(amountToDeposit).mul(new BN(Constants.toCwarRaw));
+    const amountToWithdrawRaw = new BN(amountToWithdraw).mul(new BN(Constants.toYourRaw));
 
-    const stakeCwarIx = new TransactionInstruction({
-        programId: Pubkeys.cwarStakingProgramId,
+    const poolSignerPda = await getPoolSignerPDA();
+
+    const unstakeYourIx = new TransactionInstruction({
+        programId: Pubkeys.yourStakingProgramId,
         keys: [
             {
                 pubkey: userWallet,
@@ -42,32 +44,37 @@ export async function stakeCwarTransaction(
             },
 
             {
-                pubkey: Pubkeys.cwarPoolStoragePubkey,
+                pubkey: Pubkeys.yourPoolStoragePubkey,
                 isSigner: false,
                 isWritable: true,
             },
 
             {
-                pubkey: Pubkeys.cwarStakingVaultPubkey,
+                pubkey: Pubkeys.yourStakingVaultPubkey,
                 isSigner: false,
                 isWritable: true,
             },
             {
-                pubkey: stakingAssociatedAccPubkey,
+                pubkey: stakingATAPubkey,
                 isSigner: false,
                 isWritable: true,
+            },
+            {
+                pubkey: poolSignerPda,
+                isSigner: false,
+                isWritable: false,
             },
             { pubkey: TOKEN_PROGRAM_ID, isSigner: false, isWritable: false },
         ],
         data: Buffer.from([
-            CwarStakingInstructions.StakeCwar, ...amountToDepositRaw.toArray('le', 8)
+            YourStakingInstructions.UnstakeYour, ...amountToWithdrawRaw.toArray('le', 8)
         ]),
     });
-    const stakeCwarTx = new Transaction().add(stakeCwarIx);
-    stakeCwarTx.recentBlockhash = (
+    const unstakeYourTx = new Transaction().add(unstakeYourIx);
+    unstakeYourTx.recentBlockhash = (
         await connection.getRecentBlockhash()
     ).blockhash;
-    stakeCwarTx.feePayer = userWallet;
+    unstakeYourTx.feePayer = userWallet;
 
-    return stakeCwarTx;
+    return unstakeYourTx;
 }

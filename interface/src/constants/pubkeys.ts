@@ -4,7 +4,7 @@ import {PublicKey} from '@solana/web3.js';
  * Account Public Keys
  */
 export class Pubkeys {
-  static cwarStakingProgramId = new PublicKey(
+  static yourStakingProgramId = new PublicKey(
     (process.env.SOLANA_PROGRAM_ID as string) ??
       (process.env.REACT_APP_SOLANA_PROGRAM_ID as string)
   );
@@ -13,7 +13,7 @@ export class Pubkeys {
     'ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL'
   );
 
-  static cwarTokenMintPubkey = new PublicKey(
+  static yourTokenMintPubkey = new PublicKey(
     'HfYFjMKNZygfMC8LsQ8LtpPsPxEJoXJx4M6tqi75Hajo'
   );
 
@@ -25,15 +25,15 @@ export class Pubkeys {
     'HfYFjMKNZygfMC8LsQ8LtpPsPxEJoXJx4M6tqi75Hajo'
   );
 
-  static cwarPoolStoragePubkey = new PublicKey(
+  static yourPoolStoragePubkey = new PublicKey(
     'HfYFjMKNZygfMC8LsQ8LtpPsPxEJoXJx4M6tqi75Hajo'
   );
 
-  static cwarStakingVaultPubkey = new PublicKey(
+  static yourStakingVaultPubkey = new PublicKey(
     'HfYFjMKNZygfMC8LsQ8LtpPsPxEJoXJx4M6tqi75Hajo'
   );
 
-  static cwarRewardsVaultPubkey = new PublicKey(
+  static yourRewardsVaultPubkey = new PublicKey(
     'HfYFjMKNZygfMC8LsQ8LtpPsPxEJoXJx4M6tqi75Hajo'
   );
 }

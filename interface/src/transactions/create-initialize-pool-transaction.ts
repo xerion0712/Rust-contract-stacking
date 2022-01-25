@@ -10,23 +10,23 @@ import {
 import BN from 'bn.js';
 import { ConnectionService } from '../config';
 import { Pubkeys } from '../constants';
-import { CwarStakingInstructions } from '../models';
+import { YourStakingInstructions } from '../models';
 import {findAssociatedTokenAddress, getPoolSignerPdaNonce} from '../utils';
 
 export async function createInitializePoolTransaction(
     poolOwnerWallet: PublicKey,
-    cwarPoolStorageAccount: Keypair,
-    cwarStakingVault: Keypair,
-    cwarRewardsVault: Keypair,
+    yourPoolStorageAccount: Keypair,
+    yourStakingVault: Keypair,
+    yourRewardsVault: Keypair,
     rewardDurationInDays: number,
     fundPoolAmount: number
 ): Promise<Transaction> {
     const connection = ConnectionService.getConnection();
     const poolStorageBytes = 94;
     const rewardDuration = rewardDurationInDays * 86400;
-    console.log('Pool Storage Pubkey: ', cwarPoolStorageAccount.publicKey.toString());
-    console.log('Staking Vault Pubkey: ', cwarStakingVault.publicKey.toString());
-    console.log('Rewards Vault Pubkey: ', cwarRewardsVault.publicKey.toString());
+    console.log('Pool Storage Pubkey: ', yourPoolStorageAccount.publicKey.toString());
+    console.log('Staking Vault Pubkey: ', yourStakingVault.publicKey.toString());
+    console.log('Rewards Vault Pubkey: ', yourRewardsVault.publicKey.toString());
     const newAccountKeypair = Keypair.generate();
     const createStakingVaultIx = SystemProgram.createAccount({
         space: AccountLayout.span,
@@ -35,14 +35,14 @@ export async function createInitializePoolTransaction(
             'confirmed'
         ),
         fromPubkey: poolOwnerWallet,
-        newAccountPubkey: cwarStakingVault.publicKey,
+        newAccountPubkey: yourStakingVault.publicKey,
         programId: TOKEN_PROGRAM_ID,
     });
 
     const initStakingVaultIx = Token.createInitAccountInstruction(
         TOKEN_PROGRAM_ID,
         Pubkeys.stakingMintPubkey,
-        cwarStakingVault.publicKey,
+        yourStakingVault.publicKey,
         poolOwnerWallet
     );
     const createRewardsVaultIx = SystemProgram.createAccount({
@@ -52,14 +52,14 @@ export async function createInitializePoolTransaction(
             'confirmed'
         ),
         fromPubkey: poolOwnerWallet,
-        newAccountPubkey: cwarRewardsVault.publicKey,
+        newAccountPubkey: yourRewardsVault.publicKey,
         programId: TOKEN_PROGRAM_ID,
     });
 
     const initRewardsVaultIx = Token.createInitAccountInstruction(
         TOKEN_PROGRAM_ID,
         Pubkeys.rewardsMintPubkey,
-        cwarRewardsVault.publicKey,
+        yourRewardsVault.publicKey,
         poolOwnerWallet
     );
     const pool_nonce = await getPoolSignerPdaNonce();
@@ -71,8 +71,8 @@ export async function createInitializePoolTransaction(
         space: poolStorageBytes,
         lamports: rentPrice,
         fromPubkey: poolOwnerWallet,
-        newAccountPubkey: cwarPoolStorageAccount.publicKey,
-        programId: Pubkeys.cwarStakingProgramId,
+        newAccountPubkey: yourPoolStorageAccount.publicKey,
+        programId: Pubkeys.yourStakingProgramId,
     });
 
     const balance = await connection.getBalance(poolOwnerWallet);
@@ -89,7 +89,7 @@ export async function createInitializePoolTransaction(
     );
 
     const initPoolStorageAccountIx = new TransactionInstruction({
-        programId: Pubkeys.cwarStakingProgramId,
+        programId: Pubkeys.yourStakingProgramId,
         keys: [
             {
                 pubkey: poolOwnerWallet,
@@ -97,7 +97,7 @@ export async function createInitializePoolTransaction(
                 isWritable: false,
             },
             {
-                pubkey: cwarPoolStorageAccount.publicKey,
+                pubkey: yourPoolStorageAccount.publicKey,
                 isSigner: false,
                 isWritable: true,
             },
@@ -107,7 +107,7 @@ export async function createInitializePoolTransaction(
                 isWritable: false,
             },
             {
-                pubkey: cwarStakingVault.publicKey,
+                pubkey: yourStakingVault.publicKey,
                 isSigner: false,
                 isWritable: true,
             },
@@ -117,7 +117,7 @@ export async function createInitializePoolTransaction(
                 isWritable: false,
             },
             {
-                pubkey: cwarRewardsVault.publicKey,
+                pubkey: yourRewardsVault.publicKey,
                 isSigner: false,
                 isWritable: true,
             },
@@ -138,7 +138,7 @@ export async function createInitializePoolTransaction(
             }
         ],
         data: Buffer.from([
-            CwarStakingInstructions.InitializeCwarPool,
+            YourStakingInstructions.InitializeYourPool,
             ...new BN(rewardDuration).toArray('le', 8), ...new BN(pool_nonce.valueOf()).toArray('le', 1), ... new BN
             (fundPoolAmount).toArray('le', 8)
         ])
@@ -158,7 +158,7 @@ export async function createInitializePoolTransaction(
     ).blockhash;
     transaction.feePayer = poolOwnerWallet;
 
-    transaction.partialSign(cwarStakingVault, cwarRewardsVault, cwarPoolStorageAccount);
+    transaction.partialSign(yourStakingVault, yourRewardsVault, yourPoolStorageAccount);
 
     return transaction;
 }

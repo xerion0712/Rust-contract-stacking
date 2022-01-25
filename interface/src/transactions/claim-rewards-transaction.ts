@@ -6,7 +6,7 @@ import {
 import { findAssociatedTokenAddress, getPoolSignerPDA, getUserStorageAccount } from '../utils';
 import { Pubkeys } from '../constants';
 import { ConnectionService } from '../config';
-import { CwarStakingInstructions } from '../models';
+import { YourStakingInstructions } from '../models';
 import { ASSOCIATED_TOKEN_PROGRAM_ID, Token, TOKEN_PROGRAM_ID } from '@solana/spl-token';
 export async function claimRewardsTransaction(
     userWallet: PublicKey
@@ -46,7 +46,7 @@ export async function claimRewardsTransaction(
     const poolSignerPda = await getPoolSignerPDA();
 
     const claimRewardsIx = new TransactionInstruction({
-        programId: Pubkeys.cwarStakingProgramId,
+        programId: Pubkeys.yourStakingProgramId,
         keys: [
             {
                 pubkey: userWallet,
@@ -61,18 +61,18 @@ export async function claimRewardsTransaction(
             },
 
             {
-                pubkey: Pubkeys.cwarPoolStoragePubkey,
+                pubkey: Pubkeys.yourPoolStoragePubkey,
                 isSigner: false,
                 isWritable: true,
             },
 
             {
-                pubkey: Pubkeys.cwarStakingVaultPubkey,
+                pubkey: Pubkeys.yourStakingVaultPubkey,
                 isSigner: false,
                 isWritable: true,
             },
             {
-                pubkey: Pubkeys.cwarRewardsVaultPubkey,
+                pubkey: Pubkeys.yourRewardsVaultPubkey,
                 isSigner: false,
                 isWritable: true,
             },
@@ -89,7 +89,7 @@ export async function claimRewardsTransaction(
             { pubkey: TOKEN_PROGRAM_ID, isSigner: false, isWritable: false },
         ],
         data: Buffer.from([
-            CwarStakingInstructions.ClaimRewards
+            YourStakingInstructions.ClaimRewards
         ]),
     });
     claimRewardsIxs.push(claimRewardsIx);

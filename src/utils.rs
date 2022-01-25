@@ -79,3 +79,4 @@ pub fn earned(
 pub fn last_time_reward_applicable(reward_duration_end: u64, now_unix_timestamp: i64) -> u64 {
     return std::cmp::min(now_unix_timestamp.try_into().unwrap(), reward_duration_end);
 }
+

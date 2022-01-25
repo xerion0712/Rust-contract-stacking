@@ -7,7 +7,7 @@ import {
 import { getUserStorageAccountWithNonce } from '../utils';
 import { Pubkeys } from '../constants';
 import { ConnectionService } from '../config';
-import { CwarStakingInstructions } from '../models';
+import { YourStakingInstructions } from '../models';
 import BN from 'bn.js';
 export async function createUserTransaction(
     userWallet: PublicKey
@@ -19,7 +19,7 @@ export async function createUserTransaction(
     );
 
     const createUserIx = new TransactionInstruction({
-        programId: Pubkeys.cwarStakingProgramId,
+        programId: Pubkeys.yourStakingProgramId,
         keys: [
             {
                 pubkey: userWallet,
@@ -34,7 +34,7 @@ export async function createUserTransaction(
             },
 
             {
-                pubkey: Pubkeys.cwarPoolStoragePubkey,
+                pubkey: Pubkeys.yourPoolStoragePubkey,
                 isSigner: false,
                 isWritable: true,
             },
@@ -46,7 +46,7 @@ export async function createUserTransaction(
             },
         ],
         data: Buffer.from([
-            CwarStakingInstructions.CreateUser, ...new BN(nonce.valueOf()).toArray('le', 1)
+            YourStakingInstructions.CreateUser, ...new BN(nonce.valueOf()).toArray('le', 1)
         ]),
     });
     const createUserTx = new Transaction().add(createUserIx);

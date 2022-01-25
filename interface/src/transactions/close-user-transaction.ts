@@ -6,7 +6,7 @@ import {
 import { getUserStorageAccount } from '../utils';
 import { Pubkeys } from '../constants';
 import { ConnectionService } from '../config';
-import { CwarStakingInstructions } from '../models';
+import { YourStakingInstructions } from '../models';
 export async function closeUserTransaction(
     userWallet: PublicKey
 ): Promise<Transaction> {
@@ -17,7 +17,7 @@ export async function closeUserTransaction(
     );
 
     const closeUserIx = new TransactionInstruction({
-        programId: Pubkeys.cwarStakingProgramId,
+        programId: Pubkeys.yourStakingProgramId,
         keys: [
             {
                 pubkey: userWallet,
@@ -32,13 +32,13 @@ export async function closeUserTransaction(
             },
 
             {
-                pubkey: Pubkeys.cwarPoolStoragePubkey,
+                pubkey: Pubkeys.yourPoolStoragePubkey,
                 isSigner: false,
                 isWritable: true,
             },
         ],
         data: Buffer.from([
-            CwarStakingInstructions.CloseUser
+            YourStakingInstructions.CloseUser
         ]),
     });
     const closeUserTx = new Transaction().add(closeUserIx);

@@ -1,7 +1,7 @@
 {
-	"name": "@cwar-staking/blockchain-interface",
+	"name": "@your-staking/blockchain-interface",
 	"version": "1.0.0",
-	"description": "package to interface with cwar-staking blockchain",
+	"description": "package to interface with your-staking blockchain",
 	"scripts": {
 		"build": "rimraf ./dist && tsc",
 		"postbuild": "node ./scripts/postbuild.js",
