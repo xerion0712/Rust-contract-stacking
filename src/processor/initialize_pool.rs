@@ -1,8 +1,6 @@
 use crate::{
     error::CustomError,
     state::{AccTypesWithVersion, YourPool, YOUR_POOL_STORAGE_TOTAL_BYTES},
-    utils,
-    utils::constants,
 };
 
 use borsh::{BorshDeserialize, BorshSerialize};
@@ -169,13 +167,8 @@ pub fn process_initialize_your_pool(
     your_pool_data.acc_type = AccTypesWithVersion::YourPoolDataV1 as u8;
     your_pool_data.owner_wallet = *pool_owner_wallet_account.key;
     your_pool_data.your_staking_vault = *your_staking_vault.key;
-    your_pool_data.your_staking_mint = *your_staking_mint.key;
-    your_pool_data.your_reward_vault = *your_rewards_vault.key;
-    your_pool_data.your_reward_mint = *your_rewards_mint.key;
     your_pool_data.your_reward_rate = 0u64;
-    your_pool_data.your_reward_duration = reward_duration;
-    your_pool_data.total_stake_last_update_time = 0u64;
-    your_pool_data.your_reward_per_token_stored = 0u128;
+    your_pool_data.your_epoch_duration = reward_duration;
     your_pool_data.user_stake_count = 0u32;
     your_pool_data.pda_nonce = bump_seed;
     your_pool_data.reward_duration_end = 0u64;
@@ -193,24 +186,6 @@ pub fn process_initialize_your_pool(
         return Err(CustomError::InvalidTokenProgram.into());
     }
 
-    let mut is_funder_authorised = false;
-    if *funder_wallet_account.key == your_pool_data.owner_wallet {
-        is_funder_authorised = true;
-    }
-
-    if your_pool_data
-        .funders
-        .iter()
-        .any(|x| *x == *funder_wallet_account.key)
-    {
-        is_funder_authorised = true;
-    }
-
-    if !is_funder_authorised {
-        msg!("CustomError::FundingAuthorityMismatched");
-        return Err(CustomError::FundingAuthorityMismatched.into());
-    }
-
     if your_staking_vault.owner != token_program.key {
         msg!("CustomError::AccountOwnerShouldBeTokenProgram");
         return Err(CustomError::AccountOwnerShouldBeTokenProgram.into());
@@ -224,9 +199,6 @@ pub fn process_initialize_your_pool(
         msg!("CustomError::InvalidStakingVault");
         return Err(CustomError::InvalidStakingVault.into());
     }
-
-    let total_your_staked = your_staking_vault_data.amount;
-    utils::update_rewards(&mut your_pool_data, None, total_your_staked)?;
 
     let now = Clock::get()?.unix_timestamp as u64;
     let reward_duration_end = your_pool_data.reward_duration_end;
@@ -243,11 +215,11 @@ pub fn process_initialize_your_pool(
         your_pool_data.your_reward_rate = fund_pool
             .checked_add(rewards_left_amount)
             .ok_or(CustomError::AmountOverflow)?
-            .checked_div(your_pool_data.your_reward_duration)
+            .checked_div(your_pool_data.your_epoch_duration)
             .ok_or(CustomError::AmountOverflow)?;
     } else {
         your_pool_data.your_reward_rate = fund_pool
-            .checked_div(your_pool_data.your_reward_duration)
+            .checked_div(your_pool_data.your_epoch_duration)
             .ok_or(CustomError::AmountOverflow)?;
     }
 
@@ -274,9 +246,8 @@ pub fn process_initialize_your_pool(
         "your_pool_data.your_reward_rate: {}",
         your_pool_data.your_reward_rate
     );
-    your_pool_data.total_stake_last_update_time = now;
     your_pool_data.reward_duration_end = now
-        .checked_add(your_pool_data.your_reward_duration)
+        .checked_add(your_pool_data.your_epoch_duration)
         .ok_or(CustomError::AmountOverflow)?;
     your_pool_data_byte_array[0usize..YOUR_POOL_STORAGE_TOTAL_BYTES]
         .copy_from_slice(&your_pool_data.try_to_vec().unwrap());

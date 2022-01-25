@@ -82,12 +82,6 @@ pub enum CustomError {
     /// Pool Still Active
     #[error("Pool Still Active")]
     PoolStillActive,
-    // Invalid Rewards Vault
-    #[error("Invalid Rewards Vault")]
-    InvalidRewardsVault,
-    /// Funding Authority Mismatched
-    #[error("Funding Authority Mismatched")]
-    FundingAuthorityMismatched,
     /// Funder Already Present
     #[error("Funder Already Present")]
     FunderAlreadyPresent,

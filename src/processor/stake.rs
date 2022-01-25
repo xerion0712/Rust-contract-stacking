@@ -5,7 +5,6 @@ use crate::{
         AccTypesWithVersion, User, YourPool, USER_STORAGE_TOTAL_BYTES,
         YOUR_POOL_STORAGE_TOTAL_BYTES,
     },
-    utils,
 };
 
 use borsh::{BorshDeserialize, BorshSerialize};
@@ -58,7 +57,7 @@ pub fn process_stake(
         return Err(CustomError::DataSizeNotMatched.into());
     }
     let mut your_pool_data_byte_array = your_pool_storage_account.data.try_borrow_mut().unwrap();
-    let mut your_pool_data: YourPool =
+    let your_pool_data: YourPool =
         YourPool::try_from_slice(&your_pool_data_byte_array[0usize..YOUR_POOL_STORAGE_TOTAL_BYTES])
             .unwrap();
     if your_pool_data.acc_type != AccTypesWithVersion::YourPoolDataV1 as u8 {
@@ -100,12 +99,6 @@ pub fn process_stake(
         return Err(CustomError::InvalidStakingVault.into());
     }
 
-    let total_your_staked = your_staking_vault_data.amount;
-    utils::update_rewards(
-        &mut your_pool_data,
-        Some(&mut user_storage_data),
-        total_your_staked,
-    )?;
     msg!("Calling the token program to transfer to Staking Vault...");
     invoke(
         &spl_token::instruction::transfer(

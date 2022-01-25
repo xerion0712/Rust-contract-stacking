@@ -108,13 +108,6 @@ pub fn process_close_pool(accounts: &[AccountInfo], program_id: &Pubkey) -> Prog
     let (pool_signer_address, bump_seed) =
         Pubkey::find_program_address(&[&your_pool_storage_account.key.to_bytes()], program_id);
 
-    if your_rewards_vault_data.owner != pool_signer_address
-        || your_pool_data.your_reward_vault != *your_rewards_vault.key
-    {
-        msg!("CustomError::InvalidRewardsVault");
-        return Err(CustomError::InvalidRewardsVault.into());
-    }
-
     msg!("Calling the token program to transfer YOUR to Rewards Refund from Rewards Vault...");
     invoke_signed(
         &spl_token::instruction::transfer(
@@ -171,7 +164,6 @@ pub fn process_close_pool(accounts: &[AccountInfo], program_id: &Pubkey) -> Prog
     )?;
 
     your_pool_data.your_staking_vault = Pubkey::default();
-    your_pool_data.your_reward_vault = Pubkey::default();
     your_pool_data_byte_array[0usize..YOUR_POOL_STORAGE_TOTAL_BYTES]
         .copy_from_slice(&your_pool_data.try_to_vec().unwrap());
     Ok(())
