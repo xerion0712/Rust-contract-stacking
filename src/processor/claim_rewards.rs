@@ -4,9 +4,8 @@ use crate::{
     state::{
         AccTypesWithVersion, User, YourPool, USER_STORAGE_TOTAL_BYTES,
         YOUR_POOL_STORAGE_TOTAL_BYTES,
-    }
+    },
 };
-
 use borsh::{BorshDeserialize, BorshSerialize};
 use solana_program::{
     account_info::{next_account_info, AccountInfo},
@@ -16,6 +15,8 @@ use solana_program::{
     program_error::ProgramError,
     program_pack::Pack,
     pubkey::Pubkey,
+    sysvar::clock::Clock,
+    sysvar::Sysvar,
 };
 use spl_token::state::Account as TokenAccount;
 
@@ -98,35 +99,31 @@ pub fn process_claim_rewards(accounts: &[AccountInfo], program_id: &Pubkey) -> P
         return Err(CustomError::InvalidStakingVault.into());
     }
 
-    if user_storage_data.your_reward_per_token_pending > 0u64 {
-        let mut reward_amount = user_storage_data.your_reward_per_token_pending;
-        user_storage_data.your_reward_per_token_pending = 0u64;
-        let your_rewards_vault_data = TokenAccount::unpack(&your_rewards_vault.data.borrow())?;
-        let reward_vault_balance = your_rewards_vault_data.amount;
-        if reward_vault_balance < reward_amount {
-            reward_amount = reward_vault_balance;
-        }
+    let now = Clock::get()?.unix_timestamp as i64;
+    if user_storage_data.claim_timeout_date >= now || user_storage_data.claim_timeout_date == 0 {
+        msg!("Calling the token program to transfer YOUR to User from Rewards Vault...");
+        invoke_signed(
+            &spl_token::instruction::transfer(
+                token_program.key,
+                your_rewards_vault.key,
+                user_rewards_ata.key,
+                &pool_signer_address,
+                &[&pool_signer_address],
+                2,
+            )?,
+            &[
+                your_rewards_vault.clone(),
+                user_rewards_ata.clone(),
+                pool_signer_pda.clone(),
+                token_program.clone(),
+            ],
+            &[&[&your_pool_storage_account.key.to_bytes(), &[bump_seed]]],
+        )?;
 
-        if reward_amount > 0 {
-            msg!("Calling the token program to transfer to User from Rewards Vault...");
-            invoke_signed(
-                &spl_token::instruction::transfer(
-                    token_program.key,
-                    your_rewards_vault.key,
-                    user_rewards_ata.key,
-                    &pool_signer_address,
-                    &[&pool_signer_address],
-                    reward_amount,
-                )?,
-                &[
-                    your_rewards_vault.clone(),
-                    user_rewards_ata.clone(),
-                    pool_signer_pda.clone(),
-                    token_program.clone(),
-                ],
-                &[&[&your_pool_storage_account.key.to_bytes(), &[bump_seed]]],
-            )?;
-        }
+        user_storage_data.claim_timeout_date = now + 86400; // in seconds
+    } else {
+        msg!("CustomError::UserClaimRewardTimeout");
+        return Err(CustomError::UserClaimRewardTimeout.into());
     }
 
     your_pool_data_byte_array[0usize..YOUR_POOL_STORAGE_TOTAL_BYTES]

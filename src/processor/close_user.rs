@@ -77,13 +77,6 @@ pub fn process_close_user(accounts: &[AccountInfo], program_id: &Pubkey) -> Prog
         return Err(CustomError::UserPoolMismatched.into());
     }
 
-    if user_storage_data.balance_your_staked != 0u64
-        || user_storage_data.your_reward_per_token_pending != 0
-    {
-        msg!("CustomError::UserBalanceNonZero");
-        return Err(CustomError::UserBalanceNonZero.into());
-    }
-
     msg!("Closing the User Data Storage account and transferring lamports to User wallet...");
     utils::close_account(
         user_storage_account,

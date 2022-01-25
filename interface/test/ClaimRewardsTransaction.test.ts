@@ -120,7 +120,7 @@ describe('Claim Rewards Transaction', () => {
       cwarStakingVault,
       cwarRewardsVault,
       rewardDurationInDays,
-86400
+90000
     );
     await sendAndConfirmTransaction(connection, initializePoolTx, [
       adminAccount,

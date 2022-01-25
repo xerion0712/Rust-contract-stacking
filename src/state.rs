@@ -19,7 +19,7 @@ pub struct YourPool {
     pub reward_duration_end: u64,
 }
 
-pub const USER_STORAGE_TOTAL_BYTES: usize = 98;
+pub const USER_STORAGE_TOTAL_BYTES: usize = 82;
 #[derive(Clone, BorshDeserialize, BorshSerialize, Copy)]
 pub struct User {
     pub acc_type: u8,
@@ -27,6 +27,5 @@ pub struct User {
     pub your_pool: Pubkey,
     pub balance_your_staked: u64,
     pub nonce: u8,
-    pub your_reward_per_token_pending: u64,
-    pub your_reward_per_token_completed: u128,
+    pub claim_timeout_date: i64,
 }
