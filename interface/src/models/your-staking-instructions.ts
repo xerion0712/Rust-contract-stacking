@@ -1,8 +1,8 @@
-export enum CwarStakingInstructions {
-  InitializeCwarPool = 0,
+export enum YourStakingInstructions {
+  InitializeYourPool = 0,
   CreateUser = 1,
-  StakeCwar = 2,
-  UnstakeCwar = 3,
+  StakeYour = 2,
+  UnstakeYour = 3,
   ClaimRewards = 4,
   AddFunder = 5,
   RemoveFunder = 6,

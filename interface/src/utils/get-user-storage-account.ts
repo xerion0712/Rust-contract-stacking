@@ -6,8 +6,8 @@ export async function getUserStorageAccount(
 ): Promise<PublicKey> {
   return (
     await PublicKey.findProgramAddress(
-      [userWallet.toBuffer(), Pubkeys.cwarPoolStoragePubkey.toBuffer()],
-      Pubkeys.cwarStakingProgramId
+      [userWallet.toBuffer(), Pubkeys.yourPoolStoragePubkey.toBuffer()],
+      Pubkeys.yourStakingProgramId
     )
   )[0];
 }
@@ -18,8 +18,8 @@ export async function getUserStorageAccountWithNonce(
   ): Promise<[PublicKey, Number]> {
     return (
       await PublicKey.findProgramAddress(
-        [userWallet.toBuffer(), Pubkeys.cwarPoolStoragePubkey.toBuffer()],
-        Pubkeys.cwarStakingProgramId
+        [userWallet.toBuffer(), Pubkeys.yourPoolStoragePubkey.toBuffer()],
+        Pubkeys.yourStakingProgramId
       )
     );
   }

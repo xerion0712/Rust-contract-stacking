@@ -7,9 +7,9 @@ export async function getPoolSignerPDA(
     return (
         await PublicKey.findProgramAddress(
             [
-                Pubkeys.cwarPoolStoragePubkey.toBuffer(),
+                Pubkeys.yourPoolStoragePubkey.toBuffer(),
             ],
-            Pubkeys.cwarStakingProgramId
+            Pubkeys.yourStakingProgramId
         )
     )[0];
 }
@@ -21,9 +21,9 @@ export async function getPoolSignerPdaWithNonce(
     return (
         await PublicKey.findProgramAddress(
             [
-                Pubkeys.cwarPoolStoragePubkey.toBuffer(),
+                Pubkeys.yourPoolStoragePubkey.toBuffer(),
             ],
-            Pubkeys.cwarStakingProgramId
+            Pubkeys.yourStakingProgramId
         )
     );
 }
@@ -34,9 +34,9 @@ export async function getPoolSignerPdaNonce(
         return (
             await PublicKey.findProgramAddress(
                 [
-                    Pubkeys.cwarPoolStoragePubkey.toBuffer(),
+                    Pubkeys.yourPoolStoragePubkey.toBuffer(),
                 ],
-                Pubkeys.cwarStakingProgramId
+                Pubkeys.yourStakingProgramId
             )
         )[1];
     }

@@ -1,6 +1,6 @@
-export abstract class CwarStakingError extends Error {}
+export abstract class YourStakingError extends Error {}
 
-export class AccountNotFoundError extends CwarStakingError {
+export class AccountNotFoundError extends YourStakingError {
   constructor(public accountName = '') {
     super(`Account ${accountName} not found`);
   }

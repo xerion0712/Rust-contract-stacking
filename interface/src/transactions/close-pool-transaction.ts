@@ -6,7 +6,7 @@ import {
 import { findAssociatedTokenAddress, getPoolSignerPDA, getUserStorageAccount } from '../utils';
 import { Pubkeys } from '../constants';
 import { ConnectionService } from '../config';
-import { CwarStakingInstructions } from '../models';
+import { YourStakingInstructions } from '../models';
 import { ASSOCIATED_TOKEN_PROGRAM_ID, Token, TOKEN_PROGRAM_ID } from '@solana/spl-token';
 export async function closePoolTransaction(
     poolOwnerWallet: PublicKey
@@ -69,7 +69,7 @@ export async function closePoolTransaction(
     const poolSignerPda = await getPoolSignerPDA();
 
     const closePoolIx = new TransactionInstruction({
-        programId: Pubkeys.cwarStakingProgramId,
+        programId: Pubkeys.yourStakingProgramId,
         keys: [
             {
                 pubkey: poolOwnerWallet,
@@ -78,7 +78,7 @@ export async function closePoolTransaction(
             },
 
             {
-                pubkey: Pubkeys.cwarStakingVaultPubkey,
+                pubkey: Pubkeys.yourStakingVaultPubkey,
                 isSigner: false,
                 isWritable: true,
             },
@@ -88,7 +88,7 @@ export async function closePoolTransaction(
                 isWritable: true,
             },
             {
-                pubkey: Pubkeys.cwarRewardsVaultPubkey,
+                pubkey: Pubkeys.yourRewardsVaultPubkey,
                 isSigner: false,
                 isWritable: true,
             },
@@ -100,7 +100,7 @@ export async function closePoolTransaction(
             },
 
             {
-                pubkey: Pubkeys.cwarPoolStoragePubkey,
+                pubkey: Pubkeys.yourPoolStoragePubkey,
                 isSigner: false,
                 isWritable: true,
             },
@@ -112,7 +112,7 @@ export async function closePoolTransaction(
             { pubkey: TOKEN_PROGRAM_ID, isSigner: false, isWritable: false },
         ],
         data: Buffer.from([
-            CwarStakingInstructions.ClosePool
+            YourStakingInstructions.ClosePool
         ]),
     });
     closePoolIxs.push(closePoolIx);
