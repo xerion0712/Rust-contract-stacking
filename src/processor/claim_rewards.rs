@@ -100,7 +100,7 @@ pub fn process_claim_rewards(accounts: &[AccountInfo], program_id: &Pubkey) -> P
     }
 
     let now = Clock::get()?.unix_timestamp as i64;
-    if user_storage_data.claim_timeout_date >= now || user_storage_data.claim_timeout_date == 0 {
+    if user_storage_data.claim_timeout_date <= now || user_storage_data.claim_timeout_date == 0 {
         msg!("Calling the token program to transfer YOUR to User from Rewards Vault...");
         invoke_signed(
             &spl_token::instruction::transfer(
