@@ -6,22 +6,16 @@ pub enum AccTypesWithVersion {
     UserDataV1 = 3,
 }
 
-pub const YOUR_POOL_STORAGE_TOTAL_BYTES: usize = 374;
+pub const YOUR_POOL_STORAGE_TOTAL_BYTES: usize = 94; // Should be 2 bytes less than real size of
 #[derive(Clone, BorshDeserialize, BorshSerialize, Copy)]
 pub struct YourPool {
     pub acc_type: u8,
     pub owner_wallet: Pubkey,
     pub your_staking_vault: Pubkey,
-    pub your_staking_mint: Pubkey,
-    pub your_reward_vault: Pubkey,
-    pub your_reward_mint: Pubkey,
     pub your_reward_rate: u64,
-    pub your_reward_duration: u64,
-    pub total_stake_last_update_time: u64,
-    pub your_reward_per_token_stored: u128,
+    pub your_epoch_duration: u64,
     pub user_stake_count: u32,
     pub pda_nonce: u8,
-    pub funders: [Pubkey; 5],
     pub reward_duration_end: u64,
 }
 

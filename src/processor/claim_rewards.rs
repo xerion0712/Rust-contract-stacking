@@ -4,8 +4,7 @@ use crate::{
     state::{
         AccTypesWithVersion, User, YourPool, USER_STORAGE_TOTAL_BYTES,
         YOUR_POOL_STORAGE_TOTAL_BYTES,
-    },
-    utils,
+    }
 };
 
 use borsh::{BorshDeserialize, BorshSerialize};
@@ -55,7 +54,7 @@ pub fn process_claim_rewards(accounts: &[AccountInfo], program_id: &Pubkey) -> P
         return Err(CustomError::DataSizeNotMatched.into());
     }
     let mut your_pool_data_byte_array = your_pool_storage_account.data.try_borrow_mut().unwrap();
-    let mut your_pool_data: YourPool =
+    let your_pool_data: YourPool =
         YourPool::try_from_slice(&your_pool_data_byte_array[0usize..YOUR_POOL_STORAGE_TOTAL_BYTES])
             .unwrap();
     if your_pool_data.acc_type != AccTypesWithVersion::YourPoolDataV1 as u8 {
@@ -99,12 +98,6 @@ pub fn process_claim_rewards(accounts: &[AccountInfo], program_id: &Pubkey) -> P
         return Err(CustomError::InvalidStakingVault.into());
     }
 
-    let total_your_staked = your_staking_vault_data.amount;
-    utils::update_rewards(
-        &mut your_pool_data,
-        Some(&mut user_storage_data),
-        total_your_staked,
-    )?;
     if user_storage_data.your_reward_per_token_pending > 0u64 {
         let mut reward_amount = user_storage_data.your_reward_per_token_pending;
         user_storage_data.your_reward_per_token_pending = 0u64;

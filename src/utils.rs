@@ -2,20 +2,14 @@ use std::cell::RefMut;
 use std::convert::TryInto;
 
 use crate::error::CustomError;
-use crate::state::{User, YourPool};
 use solana_program::account_info::AccountInfo;
-use solana_program::entrypoint::ProgramResult;
 use solana_program::program_error::ProgramError;
-use solana_program::sysvar::clock::Clock;
-use solana_program::sysvar::Sysvar;
 
 // to avoid rounding errors
 const PRECISION: u128 = u64::MAX as u128;
 
 pub mod constants {
-    // Mock for other tokens
-    //pub const CRYOWAR_TOKEN_MINT_PUBKEY: &str = "HfYFjMKNZygfMC8LsQ8LtpPsPxEJoXJx4M6tqi75Hajo";
-    pub const MIN_DURATION: u64 = 86400;
+    pub const MIN_DURATION: u64 = 86400; // 1 day
 }
 
 pub fn close_account(
@@ -82,50 +76,6 @@ pub fn earned(
     return Ok(updated_reward_per_token_pending);
 }
 
-pub fn update_rewards(
-    your_pool: &mut YourPool,
-    user: Option<&mut User>,
-    total_your_staked: u64,
-) -> ProgramResult {
-    let now = Clock::get()?.unix_timestamp;
-    let last_time_reward_applicable =
-        last_time_reward_applicable(your_pool.reward_duration_end, now);
-    your_pool.your_reward_per_token_stored = rewards_per_token(
-        total_your_staked,
-        last_time_reward_applicable,
-        your_pool.total_stake_last_update_time,
-        your_pool.your_reward_rate,
-        your_pool.your_reward_per_token_stored,
-    )?;
-    your_pool.total_stake_last_update_time = last_time_reward_applicable;
-
-    if let Some(u) = user {
-        u.your_reward_per_token_pending = earned(
-            u.balance_your_staked,
-            your_pool.your_reward_per_token_stored,
-            u.your_reward_per_token_completed,
-            u.your_reward_per_token_pending,
-        )?;
-        u.your_reward_per_token_completed = your_pool.your_reward_per_token_stored;
-    }
-
-    Ok(())
-}
-
 pub fn last_time_reward_applicable(reward_duration_end: u64, now_unix_timestamp: i64) -> u64 {
     return std::cmp::min(now_unix_timestamp.try_into().unwrap(), reward_duration_end);
 }
-
-/*
-pub fn get_admin_pubkey() -> Pubkey {
-    let admin_pubkey_str: &'static str =
-        env!("ADMIN_PUBKEY", "Must specify a admin account public key!");
-    msg!(
-        "the ADMIN_PUBKEY variable at the time of compiling was: {}",
-        admin_pubkey_str
-    );
-    let pubkey_vec = bs58::decode(admin_pubkey_str).into_vec().unwrap();
-    let admin_pubkey = Pubkey::new(&pubkey_vec);
-    return admin_pubkey;
-}
-*/
