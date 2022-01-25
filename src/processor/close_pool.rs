@@ -17,13 +17,6 @@ use solana_program::{
 };
 use spl_token::state::Account as TokenAccount;
 
-/// 0. `[signer]` Pool Owner Wallet Account
-/// 1. `[writable]` CWAR Staking Vault
-/// 2. `[writable]` CWAR Staking Refund ATA
-/// 3. `[writable]` CWAR Rewards Vault
-/// 4. `[writable]` CWAR Rewards Refund ATA
-/// 5. `[writable]` CWAR Pool Storage Account
-/// 6. `[]` Token Program
 pub fn process_close_pool(accounts: &[AccountInfo], program_id: &Pubkey) -> ProgramResult {
     let account_info_iter = &mut accounts.iter();
     let pool_owner_wallet_account = next_account_info(account_info_iter)?;
@@ -79,19 +72,20 @@ pub fn process_close_pool(accounts: &[AccountInfo], program_id: &Pubkey) -> Prog
         return Err(CustomError::InvalidStakingVault.into());
     }
 
-    let total_cwar_staked = your_staking_vault_data.amount;
+    let total_your_staked = your_staking_vault_data.amount;
 
     let now = Clock::get()?.unix_timestamp;
+
     if your_pool_data.reward_duration_end <= 0u64
         || your_pool_data.reward_duration_end >= (now as u64)
         || your_pool_data.user_stake_count != 0u32
-        || total_cwar_staked != 0u64
+        || total_your_staked != 0u64
     {
         msg!("CustomError::PoolStillActive");
         return Err(CustomError::PoolStillActive.into());
     }
 
-    msg!("Calling the token program to transfer CWAR to Staking Refundee from Staking Vault...");
+    msg!("Calling the token program to transfer YOUR to Staking Refund from Staking Vault...");
     invoke_signed(
         &spl_token::instruction::transfer(
             token_program.key,
@@ -121,7 +115,7 @@ pub fn process_close_pool(accounts: &[AccountInfo], program_id: &Pubkey) -> Prog
         return Err(CustomError::InvalidRewardsVault.into());
     }
 
-    msg!("Calling the token program to transfer CWAR to Rewards Refundee from Rewards Vault...");
+    msg!("Calling the token program to transfer YOUR to Rewards Refund from Rewards Vault...");
     invoke_signed(
         &spl_token::instruction::transfer(
             token_program.key,
@@ -140,7 +134,7 @@ pub fn process_close_pool(accounts: &[AccountInfo], program_id: &Pubkey) -> Prog
         &[&[&your_pool_storage_account.key.to_bytes()[..], &[bump_seed]]],
     )?;
 
-    msg!("Calling the token program to close CWAR Staking Vault...");
+    msg!("Calling the token program to close YOUR Staking Vault...");
     invoke_signed(
         &spl_token::instruction::close_account(
             token_program.key,
@@ -158,7 +152,7 @@ pub fn process_close_pool(accounts: &[AccountInfo], program_id: &Pubkey) -> Prog
         &[&[&your_pool_storage_account.key.to_bytes()[..], &[bump_seed]]],
     )?;
 
-    msg!("Calling the token program to close CWAR Rewards Vault...");
+    msg!("Calling the token program to close YOUR Rewards Vault...");
     invoke_signed(
         &spl_token::instruction::close_account(
             token_program.key,

@@ -13,16 +13,16 @@ use solana_program::{
     account_info::{next_account_info, AccountInfo},
     entrypoint::ProgramResult,
     msg,
-    program::invoke_signed,
+    program::invoke,
     program_error::ProgramError,
     program_pack::Pack,
     pubkey::Pubkey,
 };
 use spl_token::state::Account as TokenAccount;
 
-pub fn process_unstake_cwar(
+pub fn process_stake(
     accounts: &[AccountInfo],
-    amount_to_withdraw: u64,
+    amount_to_deposit: u64,
     program_id: &Pubkey,
 ) -> ProgramResult {
     let account_info_iter = &mut accounts.iter();
@@ -31,19 +31,14 @@ pub fn process_unstake_cwar(
     let your_pool_storage_account = next_account_info(account_info_iter)?;
     let your_staking_vault = next_account_info(account_info_iter)?;
     let user_your_ata = next_account_info(account_info_iter)?;
-    let pool_signer_pda = next_account_info(account_info_iter)?;
     let token_program = next_account_info(account_info_iter)?;
 
     if !user_wallet_account.is_signer {
         msg!("ProgramError::MissingRequiredSignature");
         return Err(ProgramError::MissingRequiredSignature);
     }
-    if token_program.key != &spl_token::id() {
-        msg!("CustomError::InvalidTokenProgram");
-        return Err(CustomError::InvalidTokenProgram.into());
-    }
 
-    if amount_to_withdraw == 0u64 {
+    if amount_to_deposit == 0u64 {
         msg!("CustomError::AmountMustBeGreaterThanZero");
         return Err(CustomError::AmountMustBeGreaterThanZero.into());
     }
@@ -93,42 +88,44 @@ pub fn process_unstake_cwar(
         return Err(CustomError::UserPoolMismatched.into());
     }
 
+    if your_staking_vault.owner != token_program.key {
+        msg!("CustomError::AccountOwnerShouldBeTokenProgram");
+        return Err(CustomError::AccountOwnerShouldBeTokenProgram.into());
+    }
     let your_staking_vault_data = TokenAccount::unpack(&your_staking_vault.data.borrow())?;
-    let (pool_signer_address, bump_seed) =
+    let (pool_signer_address, _bump_seed) =
         Pubkey::find_program_address(&[&your_pool_storage_account.key.to_bytes()], program_id);
-
-    if user_storage_data.balance_your_staked < amount_to_withdraw {
-        msg!("CustomError::InsufficientFundsToUnstake");
-        return Err(CustomError::InsufficientFundsToUnstake.into());
+    if your_staking_vault_data.owner != pool_signer_address {
+        msg!("CustomError::InvalidStakingVault");
+        return Err(CustomError::InvalidStakingVault.into());
     }
 
-    let total_cwar_staked = your_staking_vault_data.amount;
+    let total_your_staked = your_staking_vault_data.amount;
     utils::update_rewards(
         &mut your_pool_data,
         Some(&mut user_storage_data),
-        total_cwar_staked,
+        total_your_staked,
     )?;
-    msg!("Calling the token program to transfer to User from Staking Vault...");
-    invoke_signed(
+    msg!("Calling the token program to transfer to Staking Vault...");
+    invoke(
         &spl_token::instruction::transfer(
             token_program.key,
-            your_staking_vault.key,
             user_your_ata.key,
-            &pool_signer_address,
-            &[&pool_signer_address],
-            amount_to_withdraw,
+            your_staking_vault.key,
+            user_wallet_account.key,
+            &[],
+            amount_to_deposit,
         )?,
         &[
-            your_staking_vault.clone(),
             user_your_ata.clone(),
-            pool_signer_pda.clone(),
+            your_staking_vault.clone(),
+            user_wallet_account.clone(),
             token_program.clone(),
         ],
-        &[&[&your_pool_storage_account.key.to_bytes(), &[bump_seed]]],
     )?;
     user_storage_data.balance_your_staked = user_storage_data
         .balance_your_staked
-        .checked_sub(amount_to_withdraw)
+        .checked_add(amount_to_deposit)
         .ok_or(CustomError::AmountOverflow)?;
     your_pool_data_byte_array[0usize..YOUR_POOL_STORAGE_TOTAL_BYTES]
         .copy_from_slice(&your_pool_data.try_to_vec().unwrap());
