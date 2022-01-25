@@ -22,7 +22,7 @@ export async function createInitializePoolTransaction(
     fundPoolAmount: number
 ): Promise<Transaction> {
     const connection = ConnectionService.getConnection();
-    const poolStorageBytes = 374;
+    const poolStorageBytes = 94;
     const rewardDuration = rewardDurationInDays * 86400;
     console.log('Pool Storage Pubkey: ', yourPoolStorageAccount.publicKey.toString());
     console.log('Staking Vault Pubkey: ', yourStakingVault.publicKey.toString());

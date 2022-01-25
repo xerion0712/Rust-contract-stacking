@@ -5,7 +5,6 @@ use crate::{
         AccTypesWithVersion, User, YourPool, USER_STORAGE_TOTAL_BYTES,
         YOUR_POOL_STORAGE_TOTAL_BYTES,
     },
-    utils,
 };
 
 use borsh::{BorshDeserialize, BorshSerialize};
@@ -15,10 +14,8 @@ use solana_program::{
     msg,
     program::invoke_signed,
     program_error::ProgramError,
-    program_pack::Pack,
     pubkey::Pubkey,
 };
-use spl_token::state::Account as TokenAccount;
 
 pub fn process_unstake(
     accounts: &[AccountInfo],
@@ -63,7 +60,7 @@ pub fn process_unstake(
         return Err(CustomError::DataSizeNotMatched.into());
     }
     let mut your_pool_data_byte_array = your_pool_storage_account.data.try_borrow_mut().unwrap();
-    let mut your_pool_data: YourPool =
+    let your_pool_data: YourPool =
         YourPool::try_from_slice(&your_pool_data_byte_array[0usize..YOUR_POOL_STORAGE_TOTAL_BYTES])
             .unwrap();
     if your_pool_data.acc_type != AccTypesWithVersion::YourPoolDataV1 as u8 {
@@ -93,7 +90,6 @@ pub fn process_unstake(
         return Err(CustomError::UserPoolMismatched.into());
     }
 
-    let your_staking_vault_data = TokenAccount::unpack(&your_staking_vault.data.borrow())?;
     let (pool_signer_address, bump_seed) =
         Pubkey::find_program_address(&[&your_pool_storage_account.key.to_bytes()], program_id);
 
@@ -102,12 +98,6 @@ pub fn process_unstake(
         return Err(CustomError::InsufficientFundsToUnstake.into());
     }
 
-    let total_your_staked = your_staking_vault_data.amount;
-    utils::update_rewards(
-        &mut your_pool_data,
-        Some(&mut user_storage_data),
-        total_your_staked,
-    )?;
     msg!("Calling the token program to transfer to User from Staking Vault...");
     invoke_signed(
         &spl_token::instruction::transfer(
