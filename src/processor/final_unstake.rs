@@ -19,18 +19,14 @@ use solana_program::{
     sysvar::Sysvar,
 };
 
-pub fn process_unstake(
-    accounts: &[AccountInfo],
-    amount_to_withdraw: u64,
-    program_id: &Pubkey,
-) -> ProgramResult {
+pub fn process_final_unstake(accounts: &[AccountInfo], program_id: &Pubkey) -> ProgramResult {
     let account_info_iter = &mut accounts.iter();
     let user_wallet_account = next_account_info(account_info_iter)?;
     let user_storage_account = next_account_info(account_info_iter)?;
     let your_pool_storage_account = next_account_info(account_info_iter)?;
-    let _your_staking_vault = next_account_info(account_info_iter)?;
-    let _user_your_ata = next_account_info(account_info_iter)?;
-    let _pool_signer_pda = next_account_info(account_info_iter)?;
+    let your_staking_vault = next_account_info(account_info_iter)?;
+    let user_your_ata = next_account_info(account_info_iter)?;
+    let pool_signer_pda = next_account_info(account_info_iter)?;
     let token_program = next_account_info(account_info_iter)?;
 
     if !user_wallet_account.is_signer {
@@ -40,11 +36,6 @@ pub fn process_unstake(
     if token_program.key != &spl_token::id() {
         msg!("CustomError::InvalidTokenProgram");
         return Err(CustomError::InvalidTokenProgram.into());
-    }
-
-    if amount_to_withdraw == 0u64 {
-        msg!("CustomError::AmountMustBeGreaterThanZero");
-        return Err(CustomError::AmountMustBeGreaterThanZero.into());
     }
 
     let (user_storage_address, _bump_seed) = get_user_storage_address_and_bump_seed(
@@ -92,17 +83,39 @@ pub fn process_unstake(
         return Err(CustomError::UserPoolMismatched.into());
     }
 
-    if user_storage_data.balance_your_staked < amount_to_withdraw {
-        msg!("CustomError::InsufficientFundsToUnstake");
-        return Err(CustomError::InsufficientFundsToUnstake.into());
-    }
+    let (pool_signer_address, bump_seed) =
+        Pubkey::find_program_address(&[&your_pool_storage_account.key.to_bytes()], program_id);
 
     let now = Clock::get()?.unix_timestamp as i64;
+    if now > user_storage_data.unstake_pending_date {
+        msg!("Calling the token program to transfer YOUR to User from Staking Vault...");
+        invoke_signed(
+            &spl_token::instruction::transfer(
+                token_program.key,
+                your_staking_vault.key,
+                user_your_ata.key,
+                &pool_signer_address,
+                &[&pool_signer_address],
+                user_storage_data.unstake_pending,
+            )?,
+            &[
+                your_staking_vault.clone(),
+                user_your_ata.clone(),
+                pool_signer_pda.clone(),
+                token_program.clone(),
+            ],
+            &[&[&your_pool_storage_account.key.to_bytes(), &[bump_seed]]],
+        )?;
+        user_storage_data.balance_your_staked = user_storage_data
+            .balance_your_staked
+            .checked_sub(user_storage_data.unstake_pending)
+            .ok_or(CustomError::AmountOverflow)?;
+    } else {
+        msg!("CustomError::UserFinalUnstakeTimeout");
+        return Err(CustomError::UserFinalUnstakeTimeout.into());
+    }
 
-    user_storage_data.unstake_pending = amount_to_withdraw;
-    user_storage_data.unstake_pending_date = now + 2; // pending for 2 seconds
-    msg!("Moved amount to pending");
-
+    user_storage_data.unstake_pending = 0u64;
     your_pool_data_byte_array[0usize..YOUR_POOL_STORAGE_TOTAL_BYTES]
         .copy_from_slice(&your_pool_data.try_to_vec().unwrap());
     user_data_byte_array[0usize..USER_STORAGE_TOTAL_BYTES]

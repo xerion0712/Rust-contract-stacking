@@ -19,6 +19,7 @@ pub enum Instruction {
     ClaimRewards {},
     ClosePool {},
     CloseUser {},
+    FinalUnstake {},
 }
 
 impl Instruction {
@@ -39,9 +40,11 @@ impl Instruction {
 
             4 => Self::ClaimRewards {},
 
-            8 => Self::ClosePool {},
+            5 => Self::ClosePool {},
 
-            9 => Self::CloseUser {},
+            6 => Self::CloseUser {},
+
+            7 => Self::FinalUnstake {},
 
             _ => return Err(InvalidInstruction.into()),
         })
