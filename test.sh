@@ -5,4 +5,4 @@ set -e
 ./deploy-localnet.sh
 cd interface
 npm i
-npm run test
+npm run test -- --runInBand

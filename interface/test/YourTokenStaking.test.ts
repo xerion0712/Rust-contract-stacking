@@ -18,6 +18,7 @@ import {
 
 } from "./prepereTestsEvironment";
 import {sendAndConfirmTransaction} from "@solana/web3.js";
+import {finalUnstakeYourTransaction} from "../src/transactions/final-unstake-your-transaction";
 
 setupTest();
 
@@ -78,6 +79,16 @@ describe('Your Token Staking Tests', () => {
             amountToUnstake
         );
         await sendAndConfirmTransaction(connection, unstakeYourTx, [walletAccount]);
+    });
+
+    test('Final unstake Your', async () => {
+
+        const connection = ConnectionService.getConnection();
+        const finalUnstakeYourTx = await finalUnstakeYourTransaction(
+            walletAccount.publicKey,
+        );
+        await timeout(4_000);
+        await sendAndConfirmTransaction(connection, finalUnstakeYourTx, [walletAccount]);
     });
 
     test('Close User', async () => {

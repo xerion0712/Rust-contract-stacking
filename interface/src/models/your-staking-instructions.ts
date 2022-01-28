@@ -4,9 +4,7 @@ export enum YourStakingInstructions {
   StakeYour = 2,
   UnstakeYour = 3,
   ClaimRewards = 4,
-  AddFunder = 5,
-  RemoveFunder = 6,
-  FundPool = 7,
-  ClosePool = 8,
-  CloseUser = 9
+  ClosePool = 5,
+  CloseUser = 6,
+  FinalUnstake = 7
 }

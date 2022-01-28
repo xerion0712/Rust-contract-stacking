@@ -82,6 +82,8 @@ pub fn process_create_user(
         user_wallet: *user_wallet_account.key,
         your_pool: *your_pool_storage_account.key,
         balance_your_staked: 0u64,
+        unstake_pending: 0u64,
+        unstake_pending_date: 0i64,
         nonce: bump_seed,
         claim_timeout_date: 0i64,
     };

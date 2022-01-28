@@ -3,13 +3,15 @@ use crate::instruction::Instruction;
 use {
     claim_rewards::process_claim_rewards, close_pool::process_close_pool,
     close_user::process_close_user, create_user::process_create_user,
-    initialize_pool::process_initialize_your_pool, stake::process_stake, unstake::process_unstake,
+    final_unstake::process_final_unstake, initialize_pool::process_initialize_your_pool,
+    stake::process_stake, unstake::process_unstake,
 };
 
 pub mod claim_rewards;
 pub mod close_pool;
 pub mod close_user;
 pub mod create_user;
+pub mod final_unstake;
 pub mod initialize_pool;
 pub mod stake;
 pub mod unstake;
@@ -67,6 +69,11 @@ impl Processor {
             Instruction::CloseUser {} => {
                 msg!("Instruction::CloseUser");
                 process_close_user(accounts, program_id)
+            }
+
+            Instruction::FinalUnstake {} => {
+                msg!("Instruction::FinalUnstake");
+                process_final_unstake(accounts, program_id)
             }
         }
     }
